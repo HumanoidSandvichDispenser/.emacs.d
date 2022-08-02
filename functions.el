@@ -66,3 +66,26 @@ the current position of point, then move it to the beginning of the line."
 (defun $projectile-mark-as-project ()
   "Mark a directory as a projectile project."
   (interactive))
+
+(defun $org-ret ()
+  "Perform special actions in specific org blocks. Otherwise perform evil-ret"
+  (interactive)
+  (cond ((org-in-src-block-p) (org-edit-special))
+        ((looking-at "^\\*") (org-toggle-todo))
+        (t (evil-ret 1))))
+
+(defun $org-make-todo ()
+  "Toggles the current line between a TODO heading and a non-heading"
+  (interactive)
+  (if (looking-at "^\\*")
+      (progn
+        (org-todo 'none)
+        (org-toggle-heading))
+    (progn
+      (org-toggle-heading)
+      (org-todo 'nextset))))
+
+(defun $kill-emacs-prompt (&optional prompt)
+  "Prompts the user whether to kill emacs or not."
+  (interactive)
+  (y-or-n-p (format "%s" (or prompt "Quit emacs? "))))

@@ -1,313 +1,429 @@
 #+TITLE: HumanoidSandvichDispenser's Emacs Configuration
 #+PROPERTY: header-args :tangle yes :results silent
-#+STARTUP: indent inlineimages
+#+STARTUP: indent inlineimages content
 
 * Init
 
 #+begin_src emacs-lisp
-  (setq custom-file (expand-file-name "auto.el" user-emacs-directory))
+(setq custom-file (expand-file-name "auto.el" user-emacs-directory))
 
-  (setq inhibit-startup-message t)
-  (tool-bar-mode -1) ; disable tool bar
-  (menu-bar-mode -1) ; disable menu bar
-  (scroll-bar-mode -1) ; disable scroll bar
+(setq inhibit-startup-message t)
+(tool-bar-mode -1) ; disable tool bar
+(menu-bar-mode -1) ; disable menu bar
+(scroll-bar-mode -1) ; disable scroll bar
 
-  (setq-default indent-tabs-mode nil) ; disable tabs
-  (setq-default tab-width 4) ; 4 spaces = 1 tab
-  (setq indent-line-function 'insert-tab) ; spaces as tabs
+(setq-default indent-tabs-mode nil) ; disable tabs
+(setq-default tab-width 4) ; 4 spaces = 1 tab
+(setq indent-line-function 'insert-tab) ; spaces as tabs
+#+end_src
 
-  ;; Define and initialise package repositories
-  (require 'package)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-  (package-initialize)
+Define and initialize package repositories.
+
+#+begin_src emacs-lisp
+;(require 'package)
+;(add-to-list
+; 'package-archives
+; '("melpa" . "https://melpa.org/packages/") t)
+;(add-to-list
+; 'package-archives
+; '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+;(package-initialize)
 #+end_src
 
 Enable autopairs and autoindentation.
 
 #+begin_src emacs-lisp
-  (electric-indent-mode)
-  (electric-pair-mode)
+(electric-indent-mode)
+(electric-pair-mode)
 #+end_src
 
 Confirm exiting emacs.
 
 #+begin_src emacs-lisp
-  (setq confirm-kill-emacs 'y-or-n-p)
+(setq confirm-kill-emacs #'y-or-n-p)
+#+end_src
+
+Make sure ~emacsclient~ starts up with the dashboard buffer by default:
+
+#+begin_src emacs-lisp
+(setq initial-buffer-choice (lambda ()
+                              (get-buffer "*dashboard*")))
+#+end_src
+
+** Override Face Highlights
+
+This is an appearance configuration, but it must be loaded before any package so the advice does not
+
+#+begin_src emacs-lisp
+(defadvice load-theme (after set-theme-overrides activate)
+  (set-face-attribute 'org-block-begin-line nil :background "transparent"))
+#+end_src
+** Backups
+
+#+begin_src emacs-lisp
+(setq
+ backup-by-copying t
+ backup-directory-alist '(("." . "~/mnt/emacs-backup"))
+ delete-old-versions t
+ kept-new-versions 6
+ kept-old-versions 2
+ version-control t)
 #+end_src
 
 * Packages
 
+Install ~straight.el~ without using ~package.el~ if it is not already installed:
+
+#+begin_src emacs-lisp
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+#+end_src
+
 Install ~use-package~ to simplify our configuration file:
 
 #+begin_src emacs-lisp
-  (unless (package-installed-p 'use-package)
-      (package-refresh-contents)
-      (package-install 'use-package))
-  (require 'use-package)
-  (setq use-package-always-ensure 't)
+(straight-use-package 'use-package)
+(use-package org :straight (:type built-in))
 #+end_src
 
-Ensure packages by default.
+Use ~straight.el~ to manage packages with ~use-package~ by default.
 
 #+begin_src emacs-lisp
-  (setq use-package-always-ensure t)
+(setq straight-use-package-by-default t)
 #+end_src
 
-** Evil Mode
+** Evil
+
+*** Evil Mode
 
 Enable ~evil-mode~, a vim layer for emacs.
 
 #+begin_src emacs-lisp
-  (use-package evil
-    :init (evil-mode 1)
-    :config
-    (with-eval-after-load 'ivy ; use <escape> to instantly exit ivy minibuffer
-      (define-key ivy-minibuffer-map
-        (kbd "<escape>")
-        #'minibuffer-keyboard-quit))
-    (setq evil-undo-system nil))
+(use-package evil
+  :init
+  (setq evil-want-keybinding nil
+        evil-want-minibuffer nil
+        evil-undo-system 'undo-redo)
+  (evil-mode 1)
+  :config
+  (with-eval-after-load 'ivy
+    ;; <escape> to exit ivy minibuffers
+    (define-key ivy-minibuffer-map
+      (kbd "<escape>")
+      #'minibuffer-keyboard-quit)))
 #+end_src
 
 Configure ~evil-mode~ variables
 
 #+begin_src emacs-lisp
-  (setq evil-emacs-state-modes nil
-        evil-insert-state-modes nil
-        evil-motion-state-modes nil)
+(setq evil-emacs-state-modes nil
+      evil-insert-state-modes nil
+      evil-motion-state-modes nil)
 
-  (setq evil-normal-state-cursor '(box)
-        evil-insert-state-cursor '(bar)
-        evil-visual-state-cursor '(hollow))
+(setq evil-normal-state-cursor '(box)
+      evil-insert-state-cursor '(bar)
+      evil-visual-state-cursor '(hollow))
 #+end_src
 
-** Evil Collection
+*** Evil Collection
 
 Enables evil keybindings for modes that do not support them by default.
 
 #+begin_src emacs-lisp
-  (use-package evil-collection
-    :after evil
-    :init (setq evil-want-keybinding nil)
-    :config (evil-collection-init))
+(use-package evil-collection
+  :after evil
+  :config (evil-collection-init))
 #+end_src
 
-** Avy
+*** Avy
 
 Avy allows easymotion-like searching and jumping.
 
 #+begin_src emacs-lisp
-  (use-package avy
-    :after evil)
+(use-package avy
+  :after evil)
 #+end_src
 
-** All the Icons
+** Content/Dependencies
+
+*** All the Icons
 
 Install custom icons, required by various packages.
 
 #+begin_src emacs-lisp
-  (use-package all-the-icons)
+(use-package all-the-icons)
 #+end_src
 
-** general.el
+** Utilities
+
+*** general.el
 
 Write cleaner keybindings and mappings.
 
 #+begin_src emacs-lisp
-  (use-package general)
+(use-package general
+  :after evil-collection)
 #+end_src
 
-** Doom Themes
-
-Enable themes from Doom Emacs.
+*** Ivy, Counsel, and Swiper
 
 #+begin_src emacs-lisp
-  (use-package doom-themes
-    :config
-    (load-theme 'doom-one t)
-    (doom-themes-org-config))
-#+end_src
-
-** Doom Modeline
-
-Use the modeline from Doom Emacs.
-
-#+begin_src emacs-lisp
-  (use-package doom-modeline
-    :init
-    (doom-modeline-mode 1)
-    :config
-    (setq doom-modeline-height 32))
-
-  (column-number-mode)
-#+end_src
-
-** Rainbow Delimiers
-
-Highlight delimiters based on their level/depth.
-
-#+begin_src emacs-lisp
-  (use-package rainbow-delimiters
-    :config (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
-#+end_src
-
-** Scroll on Drag
-
-Click and drag to scroll.
-
-#+begin_src emacs-lisp
-  (use-package scroll-on-drag)
-#+end_src
-
-** Good Scroll
-
-This enables /good/ smooth scrolling when using the mouse.
-
-#+begin_src emacs-lisp
-  (use-package good-scroll
-    :config (good-scroll-mode))
-#+end_src
-
-** Ivy, Counsel, and Swiper
-
-#+begin_src emacs-lisp
-  (use-package ivy
-    :config (ivy-mode))
-  (use-package counsel
-    :config (counsel-mode))
-  (use-package swiper)
+(use-package ivy
+  :config (ivy-mode))
+(use-package counsel
+  :config (counsel-mode))
+(use-package swiper)
 #+end_src
 
 Disable searching with caret when using ivy.
 
 #+begin_src emacs-lisp
-  (setq ivy-initial-inputs-alist nil)
+(setq ivy-initial-inputs-alist nil)
 #+end_src
 
-** Org Superstar
-
-Customize org-mode stars.
+*** Treesitter
 
 #+begin_src emacs-lisp
-  (use-package
-    org-superstar
-    :config (add-hook
-             'org-mode-hook
-             (lambda ()
-               (org-superstar-mode 1)
-               (set-face-attribute
-                'org-level-1
-                nil
-                :height 180
-                :weight 'regular
-                :underline)
-               (set-face-attribute
-                'org-level-2
-                nil
-                :height 150
-                :weight 'regular)             
-               (setq org-superstar-headline-bullets-list (list "☰" "❖" "")
-                     org-superstar-special-todo-item t
-                     org-superstar-cycle-headline-bullets nil))))
+(use-package tree-sitter)
+(use-package tree-sitter-langs)
+(use-package tree-sitter-indent)
+
+;(add-hook 'emacs-lisp-mode-hook 'tree-sitter-mode)
 #+end_src
 
-** Helpful
-
-#+begin_src emacs-lisp
-  (use-package helpful)
-#+end_src
-
-** which-key
-
-Show the available keybindings as you press them.
-
-#+begin_src emacs-lisp
-  (use-package which-key
-    :config (which-key-mode)
-            (setq which-key-idle-delay 0.25))
-#+end_src
-
-** Company
+*** Company
 
 Text completion for emacs.
 
 #+begin_src emacs-lisp
-  (use-package company
-    :config (add-hook 'after-init-hook 'global-company-mode))
+(use-package company
+  :config (add-hook 'after-init-hook 'global-company-mode))
 #+end_src
 
-** Projectile
+** Themes
 
-Manage projects on Emacs.
+*** Doom Themes
+
+A collection of themes used in Doom Emacs.
 
 #+begin_src emacs-lisp
-  (use-package projectile
-    :config
-    (projectile-mode +1)
-    (setq projectile-require-project-root 'prompt))
+(use-package doom-themes
+  :config
+  (load-theme 'doom-one t)
+  (doom-themes-org-config))
 #+end_src
 
-Use counsel alongside projectile.
+*** Zeno Theme
 
 #+begin_src emacs-lisp
-  (use-package counsel-projectile
-    :after (counsel projectile)
-    :config (counsel-projectile-mode 1))
+(use-package zeno-theme)
 #+end_src
 
-** Git
+** Appearance
+
+*** Doom Modeline
+
+Use the modeline from Doom Emacs.
 
 #+begin_src emacs-lisp
-  (use-package magit)
+(use-package doom-modeline
+  :init
+  (doom-modeline-mode 1)
+  :config
+  (setq doom-modeline-height 32))
+
+(column-number-mode)
 #+end_src
 
-** Persp Mode
+*** Dashboard
 
 #+begin_src emacs-lisp
-  (use-package perspective
-    :config
-    (persp-mode 1)
-    (setq persp-mode-prefix-key nil
-          persp-autokill-persp-when-removed-last-buffer t))
+(use-package dashboard
+  :config
+  (dashboard-setup-startup-hook)
+  (setq dashboard-startup-banner (expand-file-name
+                                  "assets/apuEZY-transparent-small.png"
+                                  user-emacs-directory)
+        dashboard-center-content t
+        dashboard-items '((projects . 5)
+                          (agenda . 5))))
 #+end_src
 
-This enables ~persp-mode~ and ~projectile~ to interact.
+*** Rainbow Delimiers
+
+Highlight delimiters based on their level/depth.
 
 #+begin_src emacs-lisp
-  ;(use-package persp-mode-projectile-bridge
-    ;:after persp-mode
-    ;:config (persp-mode-projectile-bridge-mode 1))
-
-  (use-package persp-projectile
-    :after (perspective projectile))
+(use-package rainbow-delimiters
+  :config (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 #+end_src
 
-** Beacon
+*** Scroll on Drag
+
+Click and drag to scroll.
 
 #+begin_src emacs-lisp
-  (use-package beacon
-    :config (beacon-mode 1))
+(use-package scroll-on-drag)
 #+end_src
 
-** Writeroom Mode
+*** Good Scroll
+
+This enables /good/ smooth scrolling when using the mouse.
+
+#+begin_src emacs-lisp
+(use-package good-scroll
+  :config (good-scroll-mode))
+#+end_src
+
+*** Org Superstar
+
+Customize org-mode stars.
+
+#+begin_src emacs-lisp
+(use-package
+  org-superstar
+  :hook
+  (org-mode . (lambda ()
+                (org-superstar-mode 1)
+                (set-face-attribute
+                 'org-level-1
+                 nil
+                 :height 180
+                 :weight 'regular
+                 :underline)
+                (set-face-attribute
+                 'org-level-2
+                 nil
+                 :height 150
+                 :weight 'regular)             
+                (setq org-superstar-headline-bullets-list (list "☰" "❖" "")
+                      org-superstar-special-todo-item t
+                      org-superstar-cycle-headline-bullets nil))))
+#+end_src
+
+*** Writeroom Mode / Olivetti
 
 Distraction-free editing for emacs.
 
 #+begin_src emacs-lisp
-  (use-package writeroom-mode
-    :config
-    (setq writeroom-mode-line t)
-    (setq writeroom-fullscreen-effect 'maximized)
-    (setq writeroom-maximize-window nil))
+(use-package writeroom-mode
+  :config
+  (setq writeroom-mode-line t)
+  (setq writeroom-fullscreen-effect 'maximized)
+  (setq writeroom-maximize-window nil))
 #+end_src
 
-** Treesitter
+Olivetti is an alternative that is less targeted for distraction-free editing but still has a clean interface.
 
 #+begin_src emacs-lisp
-  (use-package tree-sitter)
-  (use-package tree-sitter-langs)
-  (use-package tree-sitter-indent)
+(use-package olivetti
+  :config (setq olivetti-body-width nil))
+#+end_src
 
-  ;(add-hook 'emacs-lisp-mode-hook 'tree-sitter-mode)
+*** Page Break Lines
+
+#+begin_src emacs-lisp
+(use-package page-break-lines)
+#+end_src
+
+*** hl-defined
+
+Highlight defined symbols in elisp.
+
+#+begin_src emacs-lisp
+(use-package hl-defined
+  :straight (:host github :repo "emacsmirror/hl-defined"))
+#+end_src
+
+*** Mixed Pitch
+
+Allows for buffers to have both ~variable-pitch~ faces and ~fixed-pitch~ faces.
+
+#+begin_src emacs-lisp
+(use-package mixed-pitch
+  :hook
+  (text-mode . mixed-pitch-mode)
+  :config
+  (set-face-attribute 'variable-pitch
+                      nil
+                      :font
+                      "Overpass"))
+#+end_src
+
+** Documentation
+
+*** Helpful
+
+#+begin_src emacs-lisp
+(use-package helpful)
+#+end_src
+
+*** which-key
+
+#+begin_src emacs-lisp
+(use-package which-key
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 0.25))
+#+end_src
+
+** Projectile Management
+
+*** Projectile
+
+Manage projects on Emacs.
+
+#+begin_src emacs-lisp
+(use-package projectile
+  :config (projectile-mode +1))
+#+end_src
+
+*** counsel-projectile
+
+Use counsel alongside projectile.
+
+#+begin_src emacs-lisp
+(use-package counsel-projectile
+  :after (counsel projectile)
+  :config (counsel-projectile-mode 1))
+#+end_src
+
+*** Persp Mode
+
+#+begin_src emacs-lisp
+(use-package perspective
+  :init
+  (setq persp-suppress-no-prefix-key-warning t)
+  :config
+  (persp-mode 1)
+  (setq persp-mode-prefix-key nil))
+#+end_src
+
+*** persp-projectile
+
+This enables ~persp-mode~ and ~projectile~ to interact.
+
+#+begin_src emacs-lisp
+(use-package persp-projectile
+  :after (perspective projectile))
+#+end_src
+
+*** Magit
+
+#+begin_src emacs-lisp
+(use-package magit)
 #+end_src
 
 * Appearance
@@ -315,14 +431,22 @@ Distraction-free editing for emacs.
 Add line numbers to programming modes.
 
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
 #+end_src
 
 Split help buffers horizontally.
 
 #+begin_src emacs-lisp
-  (add-to-list 'display-buffer-alist
-               '("*helpful" display-buffer-at-bottom))
+(add-to-list 'display-buffer-alist
+             '("*helpful" display-buffer-at-bottom))
+#+end_src
+
+** Visual Line Mode
+
+Make ~evil-mode~ respect  ~visual-line-mode~, so the cursor moves a visual line rather than an actual buffer line.
+
+#+begin_src emacs-lisp
+(setq evil-respect-visual-line-mode t)
 #+end_src
 
 * Keybinds
@@ -330,209 +454,239 @@ Split help buffers horizontally.
 Automatically indent on newline.
 
 #+begin_src emacs-lisp
-  (evil-define-key 'insert 'global (kbd "RET") 'newline-and-indent)
+(evil-define-key 'insert prog-mode-map (kbd "RET") 'newline-and-indent)
 #+end_src
 
 #+begin_src emacs-lisp
-  (evil-set-leader '(normal visual) (kbd "SPC"))
+(evil-set-leader '(normal visual) (kbd "SPC"))
 
-  (evil-define-key 'normal 'global (kbd ";") 'evil-ex)
-  (evil-define-key 'normal 'global (kbd "C-s") 'save-buffer)
-  (evil-define-key '(normal insert) 'global (kbd "C-d") 'evil-scroll-down)
-  (evil-define-key '(normal insert) 'global (kbd "C-u") 'evil-scroll-up)
+(evil-define-key 'normal 'global (kbd ";") 'evil-ex)
+(evil-define-key 'normal 'global (kbd "C-s") 'save-buffer)
+(evil-define-key '(normal insert) 'global (kbd "C-d") 'evil-scroll-down)
+(evil-define-key '(normal insert) 'global (kbd "C-u") 'evil-scroll-up)
 
-  (evil-define-key 'insert 'global (kbd "C-a") 'beginning-of-text-or-line)
-  (evil-define-key 'insert 'global (kbd "C-e") 'end-of-line)
-  (evil-define-key 'insert 'global (kbd "C-n") 'next-line)
-  (evil-define-key 'insert 'global (kbd "C-p") 'previous-line)
+(evil-define-key 'insert 'global (kbd "C-a") 'beginning-of-text-or-line)
+(evil-define-key 'insert 'global (kbd "C-e") 'end-of-line)
+(evil-define-key 'insert 'global (kbd "C-n") 'next-line)
+(evil-define-key 'insert 'global (kbd "C-p") 'previous-line)
 
-  (evil-define-key 'insert 'global (kbd "C-<backspace>") 'evil-delete-backward-word)
-  (evil-define-key 'insert 'global (kbd "C-S-v") 'clipboard-yank)
-  (evil-define-key 'visual 'global (kbd "C-S-c") 'evil-yank)
-  (evil-define-key 'normal 'global (kbd "C-S-c") 'evil-yank-line)
+(evil-define-key 'insert
+  'global
+  (kbd "C-<backspace>")
+  'evil-delete-backward-word)
+
+(evil-define-key '(insert emacs)
+  'global (kbd "C-S-v")
+  'clipboard-yank)
+
+(evil-define-key 'visual
+  'global
+  (kbd "C-S-c")
+  'evil-yank)
+
+(evil-define-key 'normal
+  'global
+  (kbd "C-S-c")
+  'evil-yank-line)
+
+(evil-define-key '(normal visual)
+  'global
+  (kbd "j")
+  'evil-next-visual-line)
+
+(evil-define-key '(normal visual)
+  'global
+  (kbd "k")
+  'evil-previous-visual-line)
 #+end_src
 
 Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
 
 #+begin_src emacs-lisp
-  (evil-define-key 'normal 'global (kbd "s") 'avy-goto-char-2)
+(evil-define-key 'normal 'global (kbd "s") 'avy-goto-char-2)
 #+end_src
 
 ** Appearance
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> a"
-   :keymaps 'normal
-   "" '(nil :which-key "appearance")
-   "t" '(load-theme :which-key "Load theme")
-   "T" '(disable-theme :which-key "Disable theme"))
+(general-define-key
+ :prefix "<leader> a"
+ :keymaps 'normal
+ "" '(nil :which-key "appearance")
+ "t" '(load-theme :which-key "Load theme")
+ "T" '(disable-theme :which-key "Disable theme"))
 #+end_src
 
 ** Emacs/Editor
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> e"
-   :keymaps 'normal
-   "" '(nil :which-key "emacs")
-   "e" '(eval-buffer :which-key "Eval buffer")
-   "q" '(kill-emacs :which-key "Kill Emacs"))
+(general-define-key
+ :prefix "<leader> e"
+ :keymaps 'normal
+ "" '(nil :which-key "emacs")
+ "e" '(eval-buffer :which-key "Eval buffer")
+ "f" '(eval-defun :which-key "Eval defun")
+ "q" '(save-buffers-kill-emacs :which-key "Kill Emacs")
+ ";" '(eval-expression :which-key "Eval expression"))
 
-  (general-define-key
-   :prefix "<leader> e"
-   :keymaps 'visual
-   "" '(nil :which-key "emacs")
-   "e" '(eval-region :which-key "Eval region"))
+(general-define-key
+ :prefix "<leader> e"
+ :keymaps 'visual
+ "" '(nil :which-key "emacs")
+ "e" '(eval-region :which-key "Eval region"))
 #+end_src
 
 ** Toggle
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> t"
-   :keymaps 'normal
-   "" '(nil :which-key "toggle")
-   "w" 'writeroom-mode)
+(general-define-key
+ :prefix "<leader> t"
+ :keymaps 'normal
+ "" '(nil :which-key "toggle")
+ "w" 'writeroom-mode
+ "o" 'olivetti-mode)
 #+end_src
 
 ** File
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> f"
-   :keymaps 'normal
-   "" '(nil :which-key "file")
-   "f" '(find-file :which-key "Find file")
-   "c" '(find-config-file :which-key "Open config.org")
-   "r" '(rename-file-and-buffer :which-key "Rename file & buffer"))
+(general-define-key
+ :prefix "<leader> f"
+ :keymaps 'normal
+ "" '(nil :which-key "file")
+ "f" '(find-file :which-key "Find file")
+ "c" '(find-config-file :which-key "Open config.org")
+ "r" '(rename-file-and-buffer :which-key "Rename file & buffer"))
 #+end_src
 
 ** Buffer
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> b"
-   :keymaps 'normal
-   "" '(nil :which-key "buffer")
-   "b" '(persp-switch-to-buffer* :which-key "Pick buffer in perspective")
-   "B" '(switch-to-buffer :which-key "Pick buffer")
-   "r" '(revert-buffer :which-key "Revert buffer")
-   "d" '(kill-current-buffer :which-key "Kill buffer")
-   "n" '(evil-buffer-new :which-key "New buffer"))
+(general-define-key
+ :prefix "<leader> b"
+ :keymaps 'normal
+ "" '(nil :which-key "buffer")
+ "b" '(persp-switch-to-buffer* :which-key "Pick buffer in perspective")
+ "B" '(switch-to-buffer :which-key "Pick buffer")
+ "r" '(revert-buffer :which-key "Revert buffer")
+ "d" '(kill-current-buffer :which-key "Kill buffer")
+ "n" '(evil-buffer-new :which-key "New buffer"))
 #+end_src
 
 ** Window
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> w"
-   :keymaps 'normal
-   "" '(nil :which-key "window")
-   "h" 'evil-window-left
-   "j" 'evil-window-down
-   "k" 'evil-window-up
-   "l" 'evil-window-right
-   "q" '(evil-quit :which-key "Quit window"))
+(general-define-key
+ :prefix "<leader> w"
+ :keymaps 'normal
+ "" '(nil :which-key "window")
+ "h" 'evil-window-left
+ "j" 'evil-window-down
+ "k" 'evil-window-up
+ "l" 'evil-window-right
+ "q" '(evil-quit :which-key "Quit window"))
 #+end_src
+
 
 ** Search
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> s"
-   :keymaps 'normal
-   "" '(nil :which-key "search")
-   "o" '(counsel-outline :which-key "Outline")
-   "O" '(counsel-org-goto-all :which-key "All outlines"))
+(general-define-key
+ :prefix "<leader> s"
+ :keymaps 'normal
+ "" '(nil :which-key "search")
+ "o" '(counsel-outline :which-key "Outline")
+ "O" '(counsel-org-goto-all :which-key "All outlines"))
 #+end_src
+
 
 ** Help
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> h"
-   :keymaps 'normal
-   "" '(nil :which-key "helpful")
-   "v" '(helpful-variable :which-key "Describe variable")
-   "f" '(helpful-function :which-key "Describe function")
-   "m" '(helpful-macro :which-key "Describe macro")
-   "k" '(helpful-key :which-key "Describe key")
-   "q" '(helpful-kill-buffers :which-key "Kill all helpful buffers"))
+(general-define-key
+ :prefix "<leader> h"
+ :keymaps 'normal
+ "" '(nil :which-key "helpful")
+ "v" '(helpful-variable :which-key "Describe variable")
+ "f" '(helpful-function :which-key "Describe function")
+ "m" '(helpful-macro :which-key "Describe macro")
+ "k" '(helpful-key :which-key "Describe key")
+ "q" '(helpful-kill-buffers :which-key "Kill all helpful buffers"))
 #+end_src
+
 
 ** Git
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> g"
-   :keymaps 'normal
-   "" '(nil :which-key "git")
-   "g" '(magit-status :which-key "Open magit"))
+(general-define-key
+ :prefix "<leader> g"
+ :keymaps 'normal
+ "" '(nil :which-key "git")
+ "g" '(magit-status :which-key "Open magit"))
 #+end_src
+
 
 ** Project
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> p"
-   :keymaps 'normal
-   "" '(nil :which-key "project")
-   "p" '(projectile-switch-project :which-key "Switch project")
-   "a" '(projectile-add-known-project :which-key "Add project")
-   "b" '(projectile-switch-to-buffer :which-key "Switch buffer in project")
-   "!" '(project-shell-command :which-key "Run shell command")
-   "&" '(project-async-shell-command :which-key "Run async shell command")
-   "f" '(project-find-file :which-key "Find in project"))
+(general-define-key
+ :prefix "<leader> p"
+ :keymaps 'normal
+ "" '(nil :which-key "project")
+ "p" '(projectile-switch-project :which-key "Switch project")
+ "a" '(projectile-add-known-project :which-key "Add project")
+ "b" '(projectile-switch-to-buffer :which-key "Switch buffer in project")
+ "!" '(project-shell-command :which-key "Run shell command")
+ "&" '(project-async-shell-command :which-key "Run async shell command"))
 #+end_src
+
 
 ** Persp Mode
 
 #+begin_src emacs-lisp
-  (general-define-key
-   :prefix "<leader> TAB"
-   :keymaps 'normal
-   "" '(nil :which-key "persp-mode")
-   "TAB" '(persp-switch :which-key "Switch perspective")
-   "r" '(persp-rename :which-key "Rename perspective")
-   "1" '($persp-switch-to-1 :which-key "Switch to perspective 1")
-   "2" '($persp-switch-to-2 :which-key "Switch to perspective 2")
-   "3" '($persp-switch-to-3 :which-key "Switch to perspective 3")
-   "4" '($persp-switch-to-4 :which-key "Switch to perspective 4")
-   "5" '($persp-switch-to-5 :which-key "Switch to perspective 5"))
+(general-define-key
+ :prefix "<leader> TAB"
+ :keymaps 'normal
+ "" '(nil :which-key "persp-mode")
+ "TAB" '(persp-switch :which-key "Switch perspective")
+ "r" '(persp-rename :which-key "Rename perspective")
+ "1" '($persp-switch-to-1 :which-key "Switch to perspective 1")
+ "2" '($persp-switch-to-2 :which-key "Switch to perspective 2")
+ "3" '($persp-switch-to-3 :which-key "Switch to perspective 3")
+ "4" '($persp-switch-to-4 :which-key "Switch to perspective 4")
+ "5" '($persp-switch-to-5 :which-key "Switch to perspective 5"))
 #+end_src
+
 
 * Orgmode
 
 This function toggles entries between TODO and DONE.
 
 #+begin_src emacs-lisp
-  (defun org-toggle-todo ()
-      (interactive)
-      (save-excursion
-          (org-back-to-heading t) ;; Make sure command works even if point is
-                                  ;; below target heading
-          (cond ((looking-at "\*+ TODO")
-                  (org-todo "DONE"))
-              ((looking-at "\*+ DONE")
-                  (org-todo "TODO"))
-              (t (message "Can only toggle between TODO and DONE.")))))
+(defun org-toggle-todo ()
+    (interactive)
+    (save-excursion
+        (org-back-to-heading t) ;; Make sure command works even if point is
+                                ;; below target heading
+        (cond ((looking-at "\*+ TODO")
+                (org-todo "DONE"))
+            ((looking-at "\*+ DONE")
+                (org-todo "TODO"))
+            (t (message "Can only toggle between TODO and DONE.")))))
 #+end_src
 
 Sets the directory where my org files are usually located.
 
 #+begin_src emacs-lisp
-  (setq org-directory "~/Dropbox/Documents/org")
-  (setq org-default-notes-file (concat org-directory "/agenda.org"))
-  (setq org-agenda-files '("~/Dropbox/Documents/org"))
+(setq org-directory "~/Dropbox/Documents/org"
+      org-default-notes-file (concat org-directory "/agenda.org")
+      org-agenda-files '("~/Dropbox/Documents/org"))
 #+end_src
 
-This darkens the background in org codeblocks.
+Log when a TODO item is marked as done.
 
 #+begin_src emacs-lisp
-  (require 'color)
-  (set-face-attribute 'org-block nil
-      :background (color-darken-name (face-attribute 'default :background) 2))
+(setq org-log-done 'time)
 #+end_src
 
 ** Appearance
@@ -540,56 +694,71 @@ This darkens the background in org codeblocks.
 Set the symbols of the ellipses of collapsed org headers.
 
 #+begin_src emacs-lisp
-  (setq org-ellipsis " ")
+(setq org-ellipsis " ")
 #+end_src
 
 Sets the character of plainlists ([[https://jessicastringham.net/2016/10/02/org-mode-bullet/][source]]). Also sets the header bullet symbols.
 
 #+begin_src emacs-lisp
-  (font-lock-add-keywords 'org-mode
-   '(("^ +\\([-*]\\) " 0
-      (prog1 ()
-        (compose-region (match-beginning 1) (match-end 1) "•")))))
+(font-lock-add-keywords 'org-mode
+ '(("^ +\\([-*]\\) " 0
+    (prog1 ()
+      (compose-region (match-beginning 1) (match-end 1) "•")))))
 #+end_src
 
 Add space between collapsed headers.
 
 #+begin_src emacs-lisp
-  (setq org-cycle-separator-lines 1)
+(setq org-cycle-separator-lines 1)
 #+end_src
 
-*** Org-specific Keybinds
+Remove extra indentation on source blocks.
+
+#+begin_src emacs-lisp
+(setq org-edit-src-content-indentation 0)
+#+end_src
+
+** Org-specific Keybinds
 
 Allows pressing ~RET~ to toggle TODO/DONE on an org entry.
 
 #+begin_src emacs-lisp
-  (evil-define-key 'normal 'global (kbd "<leader>oa") 'org-agenda)
-  (evil-define-key 'normal 'org-mode-map (kbd "RET") 'org-toggle-todo)
+(general-define-key
+ :states 'normal
+ :keymaps 'org-mode-map
+ "RET" '$org-ret)
 #+end_src
 
 Allows pressing ~RET~ to click on an agenda entry.
 
 #+begin_src emacs-lisp
-  (evil-define-key 'normal org-agenda-mode-map (kbd "RET") 'org-agenda-goto)
+(evil-define-key 'normal org-agenda-mode-map (kbd "RET") 'org-agenda-goto)
 #+end_src
 
 #+begin_src emacs-lisp
-  (add-hook 'org-mode-hook 'org-indent-mode)
+(add-hook 'org-mode-hook 'org-indent-mode)
 #+end_src
 
 Make ~M-RET~ insert heading and enter insert mode.
 
 #+begin_src emacs-lisp
-  (evil-define-key '(normal insert) org-mode-map (kbd "M-RET") 'org-append-heading)
-  (evil-define-key '(normal insert) org-mode-map (kbd "M-S-RET") 'org-append-todo-heading)
+(evil-define-key
+  '(normal insert)
+  org-mode-map
+  (kbd "M-RET")
+  'org-append-heading)
+(evil-define-key
+  '(normal insert)
+  org-mode-map
+  (kbd "M-S-RET")
+  'org-append-todo-heading)
 #+end_src
 
 Make ~M-h~, ~M-j~, etc. replicate its arrow versions.
 
 #+begin_src emacs-lisp
-  (evil-define-key '(normal insert) org-mode-map (kbd "M-h") 'org-metaleft)
-  (evil-define-key '(normal insert) org-mode-map (kbd "M-l") 'org-metaright)
-  (evil-define-key '(normal insert) org-mode-map (kbd "M-j") 'org-metadown)
-  (evil-define-key '(normal insert) org-mode-map (kbd "M-k") 'org-metaup)
+(evil-define-key '(normal insert) org-mode-map (kbd "M-h") 'org-metaleft)
+(evil-define-key '(normal insert) org-mode-map (kbd "M-l") 'org-metaright)
+(evil-define-key '(normal insert) org-mode-map (kbd "M-j") 'org-metadown)
+(evil-define-key '(normal insert) org-mode-map (kbd "M-k") 'org-metaup)
 #+end_src
-
