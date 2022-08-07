@@ -52,13 +52,16 @@ Make sure ~emacsclient~ starts up with the dashboard buffer by default:
 
 ** Override Face Highlights
 
-This is an appearance configuration, but it must be loaded before any package so the advice does not
+This is an appearance configuration, but it must be loaded before any package.
 
 #+begin_src emacs-lisp
 (defadvice load-theme (after set-theme-overrides activate)
   (set-face-attribute 'org-block-begin-line nil :background "transparent"))
 #+end_src
+
 ** Backups
+
+Backups must be placed on a mount partition (where all my documents are normally stored). This also helps reduce clutter as backups are not placed in the directory of the original files.
 
 #+begin_src emacs-lisp
 (setq
@@ -98,7 +101,7 @@ Install ~use-package~ to simplify our configuration file:
 (use-package org :straight (:type built-in))
 #+end_src
 
-Use ~straight.el~ to manage packages with ~use-package~ by default.
+Use ~straight.el~ instead of ~package.el~ to manage packages with ~use-package~ by default.
 
 #+begin_src emacs-lisp
 (setq straight-use-package-by-default t)
@@ -166,6 +169,15 @@ Install custom icons, required by various packages.
 (use-package all-the-icons)
 #+end_src
 
+*** Emojify
+
+Display emojis in Emacs.
+
+#+begin_src emacs-lisp
+(use-package emojify
+  :hook (after-init . global-emojify-mode))
+#+end_src
+
 ** Utilities
 
 *** general.el
@@ -187,10 +199,37 @@ Write cleaner keybindings and mappings.
 (use-package swiper)
 #+end_src
 
-Disable searching with caret when using ivy.
+Disable searching with caret when using ~ivy~.
 
 #+begin_src emacs-lisp
 (setq ivy-initial-inputs-alist nil)
+#+end_src
+
+*** ivy-posframe
+
+Display ~ivy~ using posframes to show it at various locations.
+
+The posframe is positioned at the top right to make it visually similar to Visual Studio Code's command palette.
+
+#+begin_src emacs-lisp
+(use-package ivy-posframe
+  :config
+  (setq ivy-posframe-display-functions-alist
+        '((t . ivy-posframe-display-at-frame-top-center)))
+  (setq ivy-posframe-parameters '((left-fringe . 16)
+                                  (right-fringe . 16))
+        ivy-posframe-size-function '$ivy-posframe-get-size)
+  (ivy-posframe-mode))
+#+end_src
+
+*** ivy-rich
+
+Display rich information (such as ) in ~ivy~.
+
+#+begin_src emacs-lisp
+(use-package ivy-rich
+  :config
+  (ivy-rich-mode 1))
 #+end_src
 
 *** Treesitter
@@ -205,11 +244,19 @@ Disable searching with caret when using ivy.
 
 *** Company
 
-Text completion for emacs.
+Text completion for Emacs.
 
 #+begin_src emacs-lisp
 (use-package company
   :config (add-hook 'after-init-hook 'global-company-mode))
+#+end_src
+
+*** vterm
+
+A terminal emulator for Emacs.
+
+#+begin_src emacs-lisp
+(use-package vterm)
 #+end_src
 
 ** Themes
@@ -253,9 +300,10 @@ Use the modeline from Doom Emacs.
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-startup-banner (expand-file-name
-                                  "assets/apuEZY-transparent-small.png"
-                                  user-emacs-directory)
+  (setq dashboard-startup-banner
+        (expand-file-name
+         "assets/apuEZY-transparent-small.png"
+         user-emacs-directory)
         dashboard-center-content t
         dashboard-items '((projects . 5)
                           (agenda . 5))))
@@ -301,35 +349,19 @@ Customize org-mode stars.
                  'org-level-1
                  nil
                  :height 180
-                 :weight 'regular
-                 :underline)
+                 :weight 'regular)
                 (set-face-attribute
                  'org-level-2
                  nil
                  :height 150
                  :weight 'regular)             
+                (set-face-attribute
+                 'org-document-title
+                 nil
+                 :height 180)
                 (setq org-superstar-headline-bullets-list (list "☰" "❖" "")
                       org-superstar-special-todo-item t
                       org-superstar-cycle-headline-bullets nil))))
-#+end_src
-
-*** Writeroom Mode / Olivetti
-
-Distraction-free editing for emacs.
-
-#+begin_src emacs-lisp
-(use-package writeroom-mode
-  :config
-  (setq writeroom-mode-line t)
-  (setq writeroom-fullscreen-effect 'maximized)
-  (setq writeroom-maximize-window nil))
-#+end_src
-
-Olivetti is an alternative that is less targeted for distraction-free editing but still has a clean interface.
-
-#+begin_src emacs-lisp
-(use-package olivetti
-  :config (setq olivetti-body-width nil))
 #+end_src
 
 *** Page Break Lines
@@ -362,6 +394,29 @@ Allows for buffers to have both ~variable-pitch~ faces and ~fixed-pitch~ faces.
                       "Overpass"))
 #+end_src
 
+** Writing Modes
+
+*** Writeroom Mode
+
+Distraction-free editing for emacs.
+
+#+begin_src emacs-lisp
+(use-package writeroom-mode
+  :config
+  (setq writeroom-mode-line t)
+  (setq writeroom-fullscreen-effect 'maximized)
+  (setq writeroom-maximize-window nil))
+#+end_src
+
+*** Olivetti
+
+Olivetti is an alternative that is less targeted for distraction-free editing but still has a clean interface.
+
+#+begin_src emacs-lisp
+(use-package olivetti
+  :config (setq olivetti-body-width 82))
+#+end_src
+
 ** Documentation
 
 *** Helpful
@@ -379,11 +434,11 @@ Allows for buffers to have both ~variable-pitch~ faces and ~fixed-pitch~ faces.
   (setq which-key-idle-delay 0.25))
 #+end_src
 
-** Projectile Management
+** Project Management
 
 *** Projectile
 
-Manage projects on Emacs.
+Manage projects more efficiently on Emacs using.
 
 #+begin_src emacs-lisp
 (use-package projectile
@@ -423,7 +478,21 @@ This enables ~persp-mode~ and ~projectile~ to interact.
 *** Magit
 
 #+begin_src emacs-lisp
-(use-package magit)
+(use-package magit
+  :config
+  (setq
+   magit-display-buffer-function
+   #'magit-display-buffer-fullframe-status-v1))
+#+end_src
+
+*** diff-hl
+
+Highlight diffs on the gutter.
+
+#+begin_src emacs-lisp
+(use-package diff-hl
+  :config
+  (global-diff-hl-mode))
 #+end_src
 
 * Appearance
@@ -466,7 +535,7 @@ Automatically indent on newline.
 (evil-define-key '(normal insert) 'global (kbd "C-u") 'evil-scroll-up)
 
 (evil-define-key 'insert 'global (kbd "C-a") 'beginning-of-text-or-line)
-(evil-define-key 'insert 'global (kbd "C-e") 'end-of-line)
+(evil-define-key 'insert 'global (kbd "C-e") 'end-of-text-or-line)
 (evil-define-key 'insert 'global (kbd "C-n") 'next-line)
 (evil-define-key 'insert 'global (kbd "C-p") 'previous-line)
 
@@ -656,7 +725,6 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "4" '($persp-switch-to-4 :which-key "Switch to perspective 4")
  "5" '($persp-switch-to-5 :which-key "Switch to perspective 5"))
 #+end_src
-
 
 * Orgmode
 

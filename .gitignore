@@ -31,6 +31,7 @@ straight
 /transient/values.el
 /forge-database.sqlite
 /smex-items
+emojis/
 
 nohup.out
 config.el

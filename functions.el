@@ -18,13 +18,26 @@
 
 ; https://stackoverflow.com/a/7250027
 (defun beginning-of-text-or-line ()
-  "Move point to the beginning of text on the current line; if that is already
-the current position of point, then move it to the beginning of the line."
+  "Move point to the beginning of text on the current line; if that is
+already the current position of point, then move it to the beginning
+of the line."
   (interactive)
   (let ((pt (point)))
-    (beginning-of-line-text)
+    (if olivetti-mode
+        (progn
+          (beginning-of-visual-line))
+      (progn
+        (beginning-of-line-text)))
     (when (eq pt (point))
       (beginning-of-line))))
+
+(defun end-of-text-or-line ()
+  "Move point to the end of the text"
+  (interactive)
+  (let ((pt (point)))
+    (end-of-visual-line)
+    (when (eq pt (point))
+      (end-of-line))))
 
 (defun org-append-heading ()
   "Append heading after the current heading and enter insert mode."
@@ -89,3 +102,12 @@ the current position of point, then move it to the beginning of the line."
   "Prompts the user whether to kill emacs or not."
   (interactive)
   (y-or-n-p (format "%s" (or prompt "Quit emacs? "))))
+
+(defun $find-file-perspective ()
+  "Finds a file and ")
+
+(defun $ivy-posframe-get-size ()
+  "Set the ivy-posframe size according to the current frame."
+  (let ((height (or ivy-posframe-height (or ivy-height 10)))
+        (width (min (or ivy-posframe-width 200) (round (* .75 (frame-width))))))
+    (list :height height :width width :min-height height :min-width width)))
