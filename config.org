@@ -178,6 +178,14 @@ Display emojis in Emacs.
   :hook (after-init . global-emojify-mode))
 #+end_src
 
+*** request
+
+Perform HTTP requests in Emacs.
+
+#+begin_src emacs-lisp
+(use-package request)
+#+end_src
+
 ** Utilities
 
 *** general.el
@@ -242,15 +250,6 @@ Display rich information (such as ) in ~ivy~.
 ;(add-hook 'emacs-lisp-mode-hook 'tree-sitter-mode)
 #+end_src
 
-*** Company
-
-Text completion for Emacs.
-
-#+begin_src emacs-lisp
-(use-package company
-  :config (add-hook 'after-init-hook 'global-company-mode))
-#+end_src
-
 *** vterm
 
 A terminal emulator for Emacs.
@@ -298,6 +297,11 @@ Use the modeline from Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package dashboard
+  :init
+  (load-file
+   (expand-file-name
+    "dashboard-widgets.el"
+    user-emacs-directory))
   :config
   (dashboard-setup-startup-hook)
   (setq dashboard-startup-banner
@@ -306,7 +310,9 @@ Use the modeline from Doom Emacs.
          user-emacs-directory)
         dashboard-center-content t
         dashboard-items '((projects . 5)
-                          (agenda . 5))))
+                          (agenda . 5)))
+  (add-to-list 'dashboard-item-generators  '(isc . $dashboard-isc-threat-level))
+  (add-to-list 'dashboard-items '(isc) t))
 #+end_src
 
 *** Rainbow Delimiers
@@ -414,7 +420,8 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
 
 #+begin_src emacs-lisp
 (use-package olivetti
-  :config (setq olivetti-body-width 82))
+  :config
+  (setq-default olivetti-body-width 82))
 #+end_src
 
 ** Documentation
@@ -432,6 +439,49 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
   :config
   (which-key-mode)
   (setq which-key-idle-delay 0.25))
+#+end_src
+
+** Language Support
+
+*** Rust
+
+#+begin_src emacs-lisp
+(use-package rust-mode
+  :hook
+  (rust-mode . lsp))
+#+end_src
+
+** LSP
+
+*** LSP Mode
+
+#+begin_src emacs-lisp
+(use-package lsp-mode)
+#+end_src
+
+*** LSP UI
+
+#+begin_src emacs-lisp
+(use-package lsp-ui
+  :after lsp-mode)
+#+end_src
+
+*** Company
+
+Text completion for Emacs.
+
+#+begin_src emacs-lisp
+(use-package company
+  :config (add-hook 'after-init-hook 'global-company-mode)
+  :after lsp-mode)
+#+end_src
+
+*** Flycheck
+
+#+begin_src emacs-lisp
+(use-package flycheck
+  :init
+  (global-flycheck-mode))
 #+end_src
 
 ** Project Management
@@ -493,6 +543,14 @@ Highlight diffs on the gutter.
 (use-package diff-hl
   :config
   (global-diff-hl-mode))
+#+end_src
+
+** Mail
+
+*** mu4e
+
+#+begin_src emacs-lisp
+;(use-package mu4e)
 #+end_src
 
 * Appearance
@@ -706,7 +764,8 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "a" '(projectile-add-known-project :which-key "Add project")
  "b" '(projectile-switch-to-buffer :which-key "Switch buffer in project")
  "!" '(project-shell-command :which-key "Run shell command")
- "&" '(project-async-shell-command :which-key "Run async shell command"))
+ "&" '(project-async-shell-command :which-key "Run async shell command")
+ "f" '(projectile-find-file :which-key "Find file"))
 #+end_src
 
 
@@ -726,7 +785,19 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "5" '($persp-switch-to-5 :which-key "Switch to perspective 5"))
 #+end_src
 
+** Open
+
+#+begin_src emacs-lisp
+(general-define-key
+ :prefix "<leader> o"
+ :keymaps 'normal
+ "" '(nil :which-key "open")
+ "a" '(org-agenda))
+#+end_src
+
 * Orgmode
+
+Org mode is the best part of emacs; even if I switch back to Vim/Neovim, I will still be using org mode in Emacs as it is just that great.
 
 This function toggles entries between TODO and DONE.
 

@@ -111,3 +111,7 @@ of the line."
   (let ((height (or ivy-posframe-height (or ivy-height 10)))
         (width (min (or ivy-posframe-width 200) (round (* .75 (frame-width))))))
     (list :height height :width width :min-height height :min-width width)))
+
+(defun $org-agenda-project ()
+  "Opens the Org Agenda in the Org Agenda project."
+  (projectile-switch-project-by-name "~/Dropbox/Documents/org/"))
