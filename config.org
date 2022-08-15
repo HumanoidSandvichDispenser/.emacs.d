@@ -34,7 +34,14 @@ Enable autopairs and autoindentation.
 
 #+begin_src emacs-lisp
 (electric-indent-mode)
-(electric-pair-mode)
+;; electric pair sucks and doesn't indent braces correctly
+;;(electric-pair-mode)
+#+end_src
+
+In insert mode, if text is selected, replace the selection with whatever we are typing.
+
+#+begin_src emacs-lisp
+(delete-selection-mode 1)
 #+end_src
 
 Confirm exiting emacs.
@@ -186,6 +193,14 @@ Perform HTTP requests in Emacs.
 (use-package request)
 #+end_src
 
+*** Posframe
+
+Enable using posframes to display minibuffers at specific positions.
+
+#+begin_src emacs-lisp
+(use-package posframe)
+#+end_src
+
 ** Utilities
 
 *** general.el
@@ -258,6 +273,28 @@ A terminal emulator for Emacs.
 (use-package vterm)
 #+end_src
 
+*** Smartparens
+
+Automatically pairs delimiters such as brackets and braces. While ~electric-pair-mode~ exists, it does not work all the time and can occassionally break indentation.
+
+#+begin_src emacs-lisp
+(use-package smartparens
+  :config
+  (smartparens-global-mode))
+#+end_src
+
+*** Screenshot.el
+
+Takes clean and fancy snapshots of any selected region.
+
+#+begin_src emacs-lisp
+(use-package screenshot
+  :init
+  (load-file (locate-library "screenshot.el")) ; workaround
+  :straight
+  (:host github :repo "tecosaur/screenshot"))
+#+end_src
+
 ** Themes
 
 *** Doom Themes
@@ -275,6 +312,12 @@ A collection of themes used in Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package zeno-theme)
+#+end_src
+
+*** VSCode Dark+
+
+#+begin_src emacs-lisp
+(use-package vscode-dark-plus-theme)
 #+end_src
 
 ** Appearance
@@ -360,7 +403,7 @@ Customize org-mode stars.
                  'org-level-2
                  nil
                  :height 150
-                 :weight 'regular)             
+                 :weight 'regular)
                 (set-face-attribute
                  'org-document-title
                  nil
@@ -400,6 +443,44 @@ Allows for buffers to have both ~variable-pitch~ faces and ~fixed-pitch~ faces.
                       "Overpass"))
 #+end_src
 
+*** Ligatures
+
+Display ligatures on Emacs.
+
+#+begin_src emacs-lisp
+(use-package ligature
+  :straight
+  (:host github :repo "mickeynp/ligature.el")
+  :config
+  (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>"
+                                       "***" "||=" "||>" ":::" "::=" "=:=" "==="
+                                       "==>" "=!=" "=>>" "=<<" "=/=" "!==" "!!."
+                                       ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->"
+                                       "---" "-<<" "<~~" "<~>" "<*>" "<||" "<|>"
+                                       "<$>" "<==" "<=>" "<=<" "<->" "<--" "<-<"
+                                       "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_("
+                                       "..<" "..." "+++" "/==" "///" "_|_" "www"
+                                       "&&" "^=" "~~" "~@" "~=" "~>" "~-" "**"
+                                       "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-"
+                                       "{|" "[|" "]#" "::" ":=" ":>" ":<" "$>"
+                                       "==" "=>" "!=" "!!" ">:" ">=" ">>" ">-"
+                                       "-~" "-|" "->" "--" "-<" "<~" "<*" "<|"
+                                       "<:" "<$" "<=" "<>" "<-" "<<" "<+" "</"
+                                       "#{" "#[" "#:" "#=" "#!"  "##" "#(" "#?"
+                                       "#_" "%%" ".=" ".-" ".." ".?" "++" "?."
+                                       "??" ";;" "//" "__" "~~")))
+#+end_src
+
+*** Solaire Mode
+
+Distinguishes between code buffers (editing text, usually associated with or visiting a file) and information/popup buffers by giving them a darker background.
+
+#+begin_src emacs-lisp
+(use-package solaire-mode
+  :config
+  (solaire-global-mode +1))
+#+end_src
+
 ** Writing Modes
 
 *** Writeroom Mode
@@ -421,7 +502,9 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
 #+begin_src emacs-lisp
 (use-package olivetti
   :config
-  (setq-default olivetti-body-width 82))
+  (setq-default olivetti-body-width 82)
+  :hook
+  (org-mode . olivetti-mode))
 #+end_src
 
 ** Documentation
@@ -451,19 +534,33 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
   (rust-mode . lsp))
 #+end_src
 
+*** Rust Org-Babel
+
+Enables Org Babel support for Rust
+
+#+begin_src emacs-lisp
+(use-package ob-rust
+  :straight (:host gitlab :repo "ajyoon/ob-rust"))
+#+end_src
+
 ** LSP
 
 *** LSP Mode
 
 #+begin_src emacs-lisp
-(use-package lsp-mode)
+(use-package lsp-mode
+  :config
+  (setq lsp-signature-function 'lsp-signature-posframe))
 #+end_src
 
 *** LSP UI
 
 #+begin_src emacs-lisp
 (use-package lsp-ui
-  :after lsp-mode)
+  :after
+  lsp-mode
+  :config
+  (setq lsp-ui-doc-position 'at-point))
 #+end_src
 
 *** Company
@@ -578,10 +675,12 @@ Make ~evil-mode~ respect  ~visual-line-mode~, so the cursor moves a visual line 
 
 * Keybinds
 
+** Global
+
 Automatically indent on newline.
 
 #+begin_src emacs-lisp
-(evil-define-key 'insert prog-mode-map (kbd "RET") 'newline-and-indent)
+(evil-define-key 'insert prog-mode-map (kbd "RET") '$newline-and-indent)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -625,6 +724,11 @@ Automatically indent on newline.
   'global
   (kbd "k")
   'evil-previous-visual-line)
+
+(evil-define-key 'insert
+  'global
+  (kbd "RET")
+  '$newline-and-indent)
 #+end_src
 
 Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
@@ -633,7 +737,13 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
 (evil-define-key 'normal 'global (kbd "s") 'avy-goto-char-2)
 #+end_src
 
-** Appearance
+Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog-mode~.
+
+#+begin_src emacs-lisp
+(add-hook 'evil-insert-state-exit-hook '$prog-delete-trailing-whitespace)
+#+end_src
+
+** Appearance =SPC a=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -644,7 +754,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "T" '(disable-theme :which-key "Disable theme"))
 #+end_src
 
-** Emacs/Editor
+** Emacs/Editor =SPC e=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -663,7 +773,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "e" '(eval-region :which-key "Eval region"))
 #+end_src
 
-** Toggle
+** Toggle =SPC t=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -674,7 +784,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "o" 'olivetti-mode)
 #+end_src
 
-** File
+** File =SPC f=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -686,21 +796,21 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "r" '(rename-file-and-buffer :which-key "Rename file & buffer"))
 #+end_src
 
-** Buffer
+** Buffer =SPC b=
 
 #+begin_src emacs-lisp
 (general-define-key
  :prefix "<leader> b"
  :keymaps 'normal
  "" '(nil :which-key "buffer")
- "b" '(persp-switch-to-buffer* :which-key "Pick buffer in perspective")
+ "b" '(persp-counsel-switch-buffer :which-key "Pick buffer in perspective")
  "B" '(switch-to-buffer :which-key "Pick buffer")
  "r" '(revert-buffer :which-key "Revert buffer")
  "d" '(kill-current-buffer :which-key "Kill buffer")
  "n" '(evil-buffer-new :which-key "New buffer"))
 #+end_src
 
-** Window
+** Window =SPC w=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -714,8 +824,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "q" '(evil-quit :which-key "Quit window"))
 #+end_src
 
-
-** Search
+** Search =SPC s=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -726,8 +835,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "O" '(counsel-org-goto-all :which-key "All outlines"))
 #+end_src
 
-
-** Help
+** Help =SPC h=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -741,8 +849,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "q" '(helpful-kill-buffers :which-key "Kill all helpful buffers"))
 #+end_src
 
-
-** Git
+** Git =SPC g=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -753,7 +860,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
 #+end_src
 
 
-** Project
+** Project =SPC p=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -769,7 +876,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
 #+end_src
 
 
-** Persp Mode
+** Persp Mode =SPC TAB=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -785,7 +892,7 @@ Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
  "5" '($persp-switch-to-5 :which-key "Switch to perspective 5"))
 #+end_src
 
-** Open
+** Open =SPC o=
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -900,4 +1007,27 @@ Make ~M-h~, ~M-j~, etc. replicate its arrow versions.
 (evil-define-key '(normal insert) org-mode-map (kbd "M-l") 'org-metaright)
 (evil-define-key '(normal insert) org-mode-map (kbd "M-j") 'org-metadown)
 (evil-define-key '(normal insert) org-mode-map (kbd "M-k") 'org-metaup)
+#+end_src
+
+Search the outline with ~C-/~.
+
+#+begin_src emacs-lisp
+(general-define-key
+ :states '(normal insert)
+ :keymaps 'org-mode-map
+ "C-/" 'counsel-outline)
+#+end_src
+
+** Org Babel
+
+Org Babel allows users to write and execute source code blocks in Org documents. This allows for literate programming and notebooks.
+
+Enable Org Babel for specific langauges.
+
+#+begin_src emacs-lisp
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((C . t)
+   (emacs-lisp . t)
+   (python . t)))
 #+end_src

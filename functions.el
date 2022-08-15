@@ -115,3 +115,21 @@ of the line."
 (defun $org-agenda-project ()
   "Opens the Org Agenda in the Org Agenda project."
   (projectile-switch-project-by-name "~/Dropbox/Documents/org/"))
+
+;; https://gist.github.com/brianloveswords/e23cedf3a80bab675fe5
+(defun $newline-and-indent () 
+  "Add two newlines and put the cursor at the right indentation
+between them if a newline is attempted when the cursor is between
+two curly braces, otherwise do a regular newline and indent"
+  (interactive)
+  (if (and (equal (char-before) 123) ; {
+           (equal (char-after) 125)) ; }
+      (progn (newline-and-indent)
+             (split-line)
+             (indent-for-tab-command))
+    (newline-and-indent)))
+
+(defun $prog-delete-trailing-whitespace ()
+  (interactive)
+  (when (derived-mode-p 'prog-mode)
+        (delete-trailing-whitespace)))
