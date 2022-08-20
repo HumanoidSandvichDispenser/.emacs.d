@@ -51,35 +51,6 @@ of the line."
   (org-insert-todo-heading-respect-content)
   (evil-append 1))
 
-(defun $persp-switch-to-1 ()
-  "Switch to the first perspective."
-  (interactive)
-  (persp-switch-by-number 1))
-
-(defun $persp-switch-to-2 ()
-  "Switch to the first perspective."
-  (interactive)
-  (persp-switch-by-number 2))
-
-(defun $persp-switch-to-3 ()
-  "Switch to the first perspective."
-  (interactive)
-  (persp-switch-by-number 3))
-
-(defun $persp-switch-to-4 ()
-  "Switch to the first perspective."
-  (interactive)
-  (persp-switch-by-number 4))
-
-(defun $persp-switch-to-5 ()
-  "Switch to the first perspective."
-  (interactive)
-  (persp-switch-by-number 5))
-
-(defun $projectile-mark-as-project ()
-  "Mark a directory as a projectile project."
-  (interactive))
-
 (defun $org-ret ()
   "Perform special actions in specific org blocks. Otherwise perform evil-ret"
   (interactive)
@@ -117,7 +88,7 @@ of the line."
   (projectile-switch-project-by-name "~/Dropbox/Documents/org/"))
 
 ;; https://gist.github.com/brianloveswords/e23cedf3a80bab675fe5
-(defun $newline-and-indent () 
+(defun $newline-and-indent ()
   "Add two newlines and put the cursor at the right indentation
 between them if a newline is attempted when the cursor is between
 two curly braces, otherwise do a regular newline and indent"
@@ -133,3 +104,28 @@ two curly braces, otherwise do a regular newline and indent"
   (interactive)
   (when (derived-mode-p 'prog-mode)
         (delete-trailing-whitespace)))
+
+(defun $find-file-or-project ()
+  "Find file in the project root or the current directory if not in a project."
+  (interactive)
+  (if (project-current)
+      (progn
+        (call-interactively 'project-find-file))
+    (progn
+      (call-interactively 'find-file))))
+
+(defun $tabspaces-counsel-switch-buffer ()
+  "A version of `tabspaces-switch-to-buffer' which respects tab-mode
+workspaces with `tabspaces-mode'"
+  (interactive
+   (list
+    (let ((blst (mapcar #'buffer-name (tabspaces--buffer-list))))
+      (ivy-read "Switch to local buffer: " blst
+                :matcher #'ivy--switch-buffer-matcher
+                :require-match t
+                :predicate (lambda (b)
+                          (member (if (stringp b) b (car b)) blst))
+                :preselect (buffer-name (other-buffer (current-buffer)))
+                :action (lambda (choice)
+                          (switch-to-buffer choice))
+                :caller 'ivy-switch-buffer)))))

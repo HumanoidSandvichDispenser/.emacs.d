@@ -57,13 +57,14 @@ Make sure ~emacsclient~ starts up with the dashboard buffer by default:
                               (get-buffer "*dashboard*")))
 #+end_src
 
-** Override Face Highlights
+** Override Face Attributes
 
 This is an appearance configuration, but it must be loaded before any package.
 
 #+begin_src emacs-lisp
 (defadvice load-theme (after set-theme-overrides activate)
-  (set-face-attribute 'org-block-begin-line nil :background "transparent"))
+  (set-face-attribute 'org-block-begin-line nil :background "transparent")
+  (set-face-attribute 'org-block-end-line nil :background "transparent"))
 #+end_src
 
 ** Backups
@@ -216,9 +217,13 @@ Write cleaner keybindings and mappings.
 
 #+begin_src emacs-lisp
 (use-package ivy
-  :config (ivy-mode))
+  :config
+  (ivy-mode)
+  (setq ivy-re-builders-alist
+        '((t . ivy--regex-ignore-order))))
 (use-package counsel
-  :config (counsel-mode))
+  :config
+  (counsel-mode))
 (use-package swiper)
 #+end_src
 
@@ -253,6 +258,15 @@ Display rich information (such as ) in ~ivy~.
 (use-package ivy-rich
   :config
   (ivy-rich-mode 1))
+#+end_src
+
+*** amx
+
+A better ~M-x~ browser.
+#+begin_src emacs-lisp
+(use-package amx
+  :config
+  (amx-mode))
 #+end_src
 
 *** Treesitter
@@ -295,6 +309,12 @@ Takes clean and fancy snapshots of any selected region.
   (:host github :repo "tecosaur/screenshot"))
 #+end_src
 
+*** Gnuplot
+
+#+begin_src elisp
+(use-package gnuplot)
+#+end_src
+
 ** Themes
 
 *** Doom Themes
@@ -318,6 +338,12 @@ A collection of themes used in Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package vscode-dark-plus-theme)
+#+end_src
+
+*** Paper Theme
+
+#+begin_src emacs-lisp
+(use-package grey-paper-theme)
 #+end_src
 
 ** Appearance
@@ -481,6 +507,39 @@ Distinguishes between code buffers (editing text, usually associated with or vis
   (solaire-global-mode +1))
 #+end_src
 
+*** Org Appear
+
+Automatically toggle emphasis markers when your cusor is not at the current line. This is useful when taking and reading notes as you will see the emphasis markers as you type but not when you read.
+
+#+begin_src emacs-lisp
+(use-package org-appear
+  :config
+  (setq org-hide-emphasis-markers t)
+  :hook
+  (org-mode . org-appear-mode)
+  :straight
+  (:host github :repo "awth13/org-appear"))
+#+end_src
+
+*** flycheck-pos-tip
+
+Enables popups
+
+#+begin_src emacs-lisp
+(use-package flycheck-pos-tip
+  :after flycheck)
+#+end_src
+
+*** Highlight Indent Guides
+
+#+begin_src emacs-lisp
+(use-package highlight-indent-guides
+  :config
+  (setq highlight-indent-guides-method 'bitmap)
+  :hook
+  (prog-mode . highlight-indent-guides-mode))
+#+end_src
+
 ** Writing Modes
 
 *** Writeroom Mode
@@ -543,14 +602,23 @@ Enables Org Babel support for Rust
   :straight (:host gitlab :repo "ajyoon/ob-rust"))
 #+end_src
 
-** LSP
+*** Typescript
+
+#+begin_src emacs-lisp
+(use-package typescript-mode
+  :hook
+  (typescript-mode . lsp))
+#+end_src
+
+** LSP / Autocomplete
 
 *** LSP Mode
 
 #+begin_src emacs-lisp
 (use-package lsp-mode
   :config
-  (setq lsp-signature-function 'lsp-signature-posframe))
+  (setq lsp-signature-function 'lsp-signature-posframe
+        lsp-keep-workspace-alive nil))
 #+end_src
 
 *** LSP UI
@@ -570,7 +638,10 @@ Text completion for Emacs.
 #+begin_src emacs-lisp
 (use-package company
   :config (add-hook 'after-init-hook 'global-company-mode)
-  :after lsp-mode)
+  :after lsp-mode
+  :custom-face
+  (company-tooltip
+   ((t (:family "Iosevka Sandvich")))))
 #+end_src
 
 *** Flycheck
@@ -589,7 +660,8 @@ Manage projects more efficiently on Emacs using.
 
 #+begin_src emacs-lisp
 (use-package projectile
-  :config (projectile-mode +1))
+  :disabled t
+  :config (projectile-mode nil))
 #+end_src
 
 *** counsel-projectile
@@ -606,10 +678,11 @@ Use counsel alongside projectile.
 
 #+begin_src emacs-lisp
 (use-package perspective
+  :disabled t
   :init
   (setq persp-suppress-no-prefix-key-warning t)
   :config
-  (persp-mode 1)
+  (persp-mode nil)
   (setq persp-mode-prefix-key nil))
 #+end_src
 
@@ -620,6 +693,25 @@ This enables ~persp-mode~ and ~projectile~ to interact.
 #+begin_src emacs-lisp
 (use-package persp-projectile
   :after (perspective projectile))
+#+end_src
+
+*** Tabspaces
+
+Use the built-in ~tab-bar.el~ and ~project.el~ packages to deliver a similar experience to ~projectile~ and ~perspective.el~.
+
+#+begin_src emacs-lisp
+(use-package tabspaces
+  :straight (:host github :repo "mclear-tools/tabspaces")
+  :config
+  (tabspaces-mode 1)
+  (tab-bar-mode)
+  (setq tab-bar-new-tab-choice "*scratch*"))
+
+(use-package project-tab-groups
+  :disabled t
+  :config
+  (project-tab-groups-mode 1)
+  (setq tab-bar-new-tab-choice "*scratch*"))
 #+end_src
 
 *** Magit
@@ -647,7 +739,7 @@ Highlight diffs on the gutter.
 *** mu4e
 
 #+begin_src emacs-lisp
-;(use-package mu4e)
+(use-package mu4e)
 #+end_src
 
 * Appearance
@@ -663,6 +755,12 @@ Split help buffers horizontally.
 #+begin_src emacs-lisp
 (add-to-list 'display-buffer-alist
              '("*helpful" display-buffer-at-bottom))
+#+end_src
+
+Set fringes
+
+#+begin_src emacs-lisp
+;(set-fringe-style 'halfwidth)
 #+end_src
 
 ** Visual Line Mode
@@ -791,9 +889,11 @@ Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog
  :prefix "<leader> f"
  :keymaps 'normal
  "" '(nil :which-key "file")
- "f" '(find-file :which-key "Find file")
- "c" '(find-config-file :which-key "Open config.org")
- "r" '(rename-file-and-buffer :which-key "Rename file & buffer"))
+ "f" '($find-file-or-project :which-key "Find file")
+ "." '(find-file :which-key "Find file in current directory")
+ ;;"c" '(find-config-file :which-key "Open config.org")
+ "r" '(rename-file-and-buffer :which-key "Rename file & buffer")
+ "d" '(delete-file :which-key "Delete file"))
 #+end_src
 
 ** Buffer =SPC b=
@@ -803,8 +903,11 @@ Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog
  :prefix "<leader> b"
  :keymaps 'normal
  "" '(nil :which-key "buffer")
- "b" '(persp-counsel-switch-buffer :which-key "Pick buffer in perspective")
- "B" '(switch-to-buffer :which-key "Pick buffer")
+ ;"b" '(persp-counsel-switch-buffer :which-key "Pick buffer in perspective")
+ ;"b" '($counsel-switch-buffer-or-project :which-key "Pick buffer")
+ ;"b" '($counsel-tabspaces-switch-to-buffer :which-key "Switch to buffer")
+ "b" '($tabspaces-counsel-switch-buffer :which-key "Pick buffer")
+ "B" '(switch-to-buffer :which-key "Pick from all buffers")
  "r" '(revert-buffer :which-key "Revert buffer")
  "d" '(kill-current-buffer :which-key "Kill buffer")
  "n" '(evil-buffer-new :which-key "New buffer"))
@@ -862,7 +965,7 @@ Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog
 
 ** Project =SPC p=
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (general-define-key
  :prefix "<leader> p"
  :keymaps 'normal
@@ -875,21 +978,77 @@ Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog
  "f" '(projectile-find-file :which-key "Find file"))
 #+end_src
 
+#+begin_src emacs-lisp
+(general-define-key
+ :prefix "<leader> p"
+ :keymaps 'normal
+ "" '(nil :which-key "project")
+ ;"p" '(project-switch-project :which-key "Switch project")
+ "p" '(tabspaces-open-or-create-project-and-workspace :which-key "Switch project")
+ "!" '(project-shell-command :which-key "Run shell command")
+ "&" '(project-async-shell-command :which-key "Run async shell command"))
+#+end_src
 
-** Persp Mode =SPC TAB=
+** Tab Groups =SPC TAB=
+
+#+begin_src emacs-lisp :tangle no
+(when (symbol-value 'persp-mode)
+  (general-define-key
+   :prefix "<leader> TAB"
+   :keymaps 'normal
+   "" '(nil :which-key "persp-mode")
+   "TAB" '(persp-switch :which-key "Switch perspective")
+   "r" '(persp-rename :which-key "Rename perspective")
+   "1" '($persp-switch-to-1 :which-key "Switch to perspective 1")
+   "2" '($persp-switch-to-2 :which-key "Switch to perspective 2")
+   "3" '($persp-switch-to-3 :which-key "Switch to perspective 3")
+   "4" '($persp-switch-to-4 :which-key "Switch to perspective 4")
+   "5" '($persp-switch-to-5 :which-key "Switch to perspective 5")))
+#+end_src
 
 #+begin_src emacs-lisp
+;(general-define-key
+; :prefix "<leader> TAB"
+; :keymaps 'normal
+; "" '(nil :which-key "tabspace")
+; "TAB" '(tabspaces-switch-or-create-workspace :which-key "Switch tabspace")
+; "r" '(tab-bar-rename-tab :which-key "Rename tab"))
+
 (general-define-key
  :prefix "<leader> TAB"
  :keymaps 'normal
- "" '(nil :which-key "persp-mode")
- "TAB" '(persp-switch :which-key "Switch perspective")
- "r" '(persp-rename :which-key "Rename perspective")
- "1" '($persp-switch-to-1 :which-key "Switch to perspective 1")
- "2" '($persp-switch-to-2 :which-key "Switch to perspective 2")
- "3" '($persp-switch-to-3 :which-key "Switch to perspective 3")
- "4" '($persp-switch-to-4 :which-key "Switch to perspective 4")
- "5" '($persp-switch-to-5 :which-key "Switch to perspective 5"))
+ "" '(nil :which-key "tabspace")
+ "TAB" '(tabspaces-switch-or-create-workspace :which-key "Switch tabgroup/project")
+ "1" '((lambda ()
+         (interactive)
+         (tab-bar-select-tab 1))
+       :which-key "Switch to tab 1")
+ "2" '((lambda ()
+         (interactive)
+         (tab-bar-select-tab 2))
+       :which-key "Switch to tab 2")
+ "3" '((lambda ()
+         (interactive)
+         (tab-bar-select-tab 3))
+       :which-key "Switch to tab 3")
+ "4" '((lambda ()
+         (interactive)
+         (tab-bar-select-tab 4))
+       :which-key "Switch to tab 4")
+ "5" '((lambda ()
+         (interactive)
+         (tab-bar-select-tab 5))
+       :which-key "Switch to tab 5")
+ "6" '((lambda ()
+         (interactive)
+         (tab-bar-select-tab 6))
+       :which-key "Switch to tab 6")
+ "7" '((lambda ()
+         (interactive)
+         (tab-bar-select-tab 7))
+       :which-key "Switch to tab 7")
+ "r" '(tab-bar-rename-tab :which-key "Rename tab")
+ "d" '(tabspaces-kill-buffers-close-workspace :which-key "Delete tab"))
 #+end_src
 
 ** Open =SPC o=
@@ -964,6 +1123,18 @@ Remove extra indentation on source blocks.
 (setq org-edit-src-content-indentation 0)
 #+end_src
 
+Increase the size of LaTeX previews.
+
+#+begin_src emacs-lisp
+(setq org-format-latex-options '(:scale 1.5 :foreground default))
+#+end_src
+
+Hide emphasis markers
+
+#+begin_src emacs-lisp
+(setq org-hide-emphasis-markers t)
+#+end_src
+
 ** Org-specific Keybinds
 
 Allows pressing ~RET~ to toggle TODO/DONE on an org entry.
@@ -992,7 +1163,7 @@ Make ~M-RET~ insert heading and enter insert mode.
   '(normal insert)
   org-mode-map
   (kbd "M-RET")
-  'org-append-heading)
+  'org-meta-return)
 (evil-define-key
   '(normal insert)
   org-mode-map
