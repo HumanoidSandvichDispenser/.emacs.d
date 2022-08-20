@@ -652,6 +652,23 @@ Text completion for Emacs.
   (global-flycheck-mode))
 #+end_src
 
+*** YASnippet
+
+Yet Another Snippet template system for Emacs.
+
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :config
+  (yas-global-mode t))
+#+end_src
+
+Use premade snippets.
+
+#+begin_src emacs-lisp
+(use-package yasnippet-snippets
+  :after yasnippet)
+#+end_src
+
 ** Project Management
 
 *** Projectile
@@ -771,6 +788,30 @@ Make ~evil-mode~ respect  ~visual-line-mode~, so the cursor moves a visual line 
 (setq evil-respect-visual-line-mode t)
 #+end_src
 
+** Tab Bar Mode
+
+#+begin_src emacs-lisp
+(setq tab-bar-close-button-show nil
+      tab-bar-new-button-show nil
+      tab-bar-tab-hints t
+      tab-bar-tab-name-format-function #'$tab-bar-tab-name-format)
+
+(set-face-attribute
+ 'tab-bar nil
+ :height 120
+ :box t)
+
+(set-face-attribute
+ 'tab-bar-tab nil
+ :height 120
+ :overline (color-darken-name
+            (face-attribute
+             'minibuffer-prompt
+             :foreground) 0)
+ :box (list :line-width 4
+            :color (face-attribute 'default :background)))
+#+end_src
+
 * Keybinds
 
 ** Global
@@ -839,6 +880,12 @@ Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog
 
 #+begin_src emacs-lisp
 (add-hook 'evil-insert-state-exit-hook '$prog-delete-trailing-whitespace)
+#+end_src
+
+Show LSP documentation with =K= if ~lsp-ui-doc-mode~ is enabled.
+
+#+begin_src emacs-lisp
+(evil-define-key 'normal 'global (kbd "K") 'lsp-ui-doc-show)
 #+end_src
 
 ** Appearance =SPC a=
@@ -910,6 +957,7 @@ Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog
  "B" '(switch-to-buffer :which-key "Pick from all buffers")
  "r" '(revert-buffer :which-key "Revert buffer")
  "d" '(kill-current-buffer :which-key "Kill buffer")
+ "s" '($switch-to-scratch-buffer :which-key "Scratch buffer")
  "n" '(evil-buffer-new :which-key "New buffer"))
 #+end_src
 

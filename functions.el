@@ -117,15 +117,34 @@ two curly braces, otherwise do a regular newline and indent"
 (defun $tabspaces-counsel-switch-buffer ()
   "A version of `tabspaces-switch-to-buffer' which respects tab-mode
 workspaces with `tabspaces-mode'"
-  (interactive
-   (list
-    (let ((blst (mapcar #'buffer-name (tabspaces--buffer-list))))
-      (ivy-read "Switch to local buffer: " blst
-                :matcher #'ivy--switch-buffer-matcher
-                :require-match t
-                :predicate (lambda (b)
-                          (member (if (stringp b) b (car b)) blst))
-                :preselect (buffer-name (other-buffer (current-buffer)))
-                :action (lambda (choice)
-                          (switch-to-buffer choice))
-                :caller 'ivy-switch-buffer)))))
+  (interactive)
+   (let ((blst (mapcar #'buffer-name (tabspaces--buffer-list))))
+     (ivy-read "Switch to local buffer: " blst
+               :matcher #'ivy--switch-buffer-matcher
+               :require-match t
+               :predicate (lambda (b)
+                            (member (if (stringp b) b (car b)) blst))
+               :preselect (buffer-name (other-buffer (current-buffer)))
+               :action (lambda (choice)
+                         (switch-to-buffer choice))
+               :caller 'ivy-switch-buffer)))
+
+(defun $switch-to-scratch-buffer ()
+  "Switches to the scratch buffer"
+  (interactive)
+  (switch-to-buffer "*scratch*"))
+
+(defun $tab-bar-tab-name-format (tab i)
+  "Format function used for displaying tab names in `tab-bar-mode'"
+  (let ((current-p (eq (car tab) 'current-tab)))
+    (propertize
+     (concat "  "
+             (if tab-bar-tab-hints (format "[%d] " i) "")
+             (alist-get 'name tab)
+             (or (and tab-bar-close-button-show
+                      (not (eq tab-bar-close-button-show
+                               (if current-p 'non-selected 'selected)))
+                      tab-bar-close-button)
+                 "")
+             "  ")
+     'face (funcall tab-bar-tab-face-function tab))))
