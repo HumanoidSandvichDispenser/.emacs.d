@@ -148,3 +148,18 @@ workspaces with `tabspaces-mode'"
                  "")
              "  ")
      'face (funcall tab-bar-tab-face-function tab))))
+
+(defun $lsp-ui-doc-glance-or-focus ()
+  "Glances over hover information popup. If the information popup is
+already open, focus onto it."
+  (interactive)
+  (if (lsp-ui-doc--frame-visible-p)
+      (progn
+        (message "Visible")
+        (lsp-ui-doc-hide)
+        (lsp-ui-doc-show)
+        (lsp-ui-doc-focus-frame))
+    ;; lsp-ui-doc--visible-p is nil if we're in doc buffer
+    (message "Not visible")
+    (lsp-ui-doc-unfocus-frame)
+    (lsp-ui-doc-glance)))

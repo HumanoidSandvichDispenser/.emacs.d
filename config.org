@@ -17,25 +17,10 @@
 (setq indent-line-function 'insert-tab) ; spaces as tabs
 #+end_src
 
-Define and initialize package repositories.
-
-#+begin_src emacs-lisp
-;(require 'package)
-;(add-to-list
-; 'package-archives
-; '("melpa" . "https://melpa.org/packages/") t)
-;(add-to-list
-; 'package-archives
-; '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-;(package-initialize)
-#+end_src
-
 Enable autopairs and autoindentation.
 
 #+begin_src emacs-lisp
 (electric-indent-mode)
-;; electric pair sucks and doesn't indent braces correctly
-;;(electric-pair-mode)
 #+end_src
 
 In insert mode, if text is selected, replace the selection with whatever we are typing.
@@ -57,6 +42,12 @@ Make sure ~emacsclient~ starts up with the dashboard buffer by default:
                               (get-buffer "*dashboard*")))
 #+end_src
 
+Enable ~superword-mode~ so underscores are treated as words, which is respected by ~evil-mode~.
+
+#+begin_src emacs-lisp
+(global-superword-mode t)
+#+end_src
+
 ** Override Face Attributes
 
 This is an appearance configuration, but it must be loaded before any package.
@@ -64,7 +55,20 @@ This is an appearance configuration, but it must be loaded before any package.
 #+begin_src emacs-lisp
 (defadvice load-theme (after set-theme-overrides activate)
   (set-face-attribute 'org-block-begin-line nil :background "transparent")
-  (set-face-attribute 'org-block-end-line nil :background "transparent"))
+  (set-face-attribute 'org-block-end-line nil :background "transparent")
+  (set-face-attribute
+   'tab-bar nil
+   :height 120
+   :box t)
+  (set-face-attribute
+   'tab-bar-tab nil
+   :height 120
+   :overline (color-darken-name
+              (face-attribute
+               'minibuffer-prompt
+               :foreground) 0)
+   :box (list :line-width 4
+              :color (face-attribute 'default :background))))
 #+end_src
 
 ** Backups
@@ -133,7 +137,8 @@ Enable ~evil-mode~, a vim layer for emacs.
     ;; <escape> to exit ivy minibuffers
     (define-key ivy-minibuffer-map
       (kbd "<escape>")
-      #'minibuffer-keyboard-quit)))
+      #'minibuffer-keyboard-quit))
+  (setq evil-symbol-word-search t))
 #+end_src
 
 Configure ~evil-mode~ variables
@@ -671,47 +676,6 @@ Use premade snippets.
 
 ** Project Management
 
-*** Projectile
-
-Manage projects more efficiently on Emacs using.
-
-#+begin_src emacs-lisp
-(use-package projectile
-  :disabled t
-  :config (projectile-mode nil))
-#+end_src
-
-*** counsel-projectile
-
-Use counsel alongside projectile.
-
-#+begin_src emacs-lisp
-(use-package counsel-projectile
-  :after (counsel projectile)
-  :config (counsel-projectile-mode 1))
-#+end_src
-
-*** Persp Mode
-
-#+begin_src emacs-lisp
-(use-package perspective
-  :disabled t
-  :init
-  (setq persp-suppress-no-prefix-key-warning t)
-  :config
-  (persp-mode nil)
-  (setq persp-mode-prefix-key nil))
-#+end_src
-
-*** persp-projectile
-
-This enables ~persp-mode~ and ~projectile~ to interact.
-
-#+begin_src emacs-lisp
-(use-package persp-projectile
-  :after (perspective projectile))
-#+end_src
-
 *** Tabspaces
 
 Use the built-in ~tab-bar.el~ and ~project.el~ packages to deliver a similar experience to ~projectile~ and ~perspective.el~.
@@ -795,21 +759,14 @@ Make ~evil-mode~ respect  ~visual-line-mode~, so the cursor moves a visual line 
       tab-bar-new-button-show nil
       tab-bar-tab-hints t
       tab-bar-tab-name-format-function #'$tab-bar-tab-name-format)
+#+end_src
 
-(set-face-attribute
- 'tab-bar nil
- :height 120
- :box t)
+** Highlight Line Mode
 
-(set-face-attribute
- 'tab-bar-tab nil
- :height 120
- :overline (color-darken-name
-            (face-attribute
-             'minibuffer-prompt
-             :foreground) 0)
- :box (list :line-width 4
-            :color (face-attribute 'default :background)))
+Enable ~hl-line-mode~ for programming buffers.
+
+#+begin_src emacs-lisp
+(add-hook 'prog-mode-hook #'hl-line-mode)
 #+end_src
 
 * Keybinds
@@ -885,7 +842,9 @@ Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog
 Show LSP documentation with =K= if ~lsp-ui-doc-mode~ is enabled.
 
 #+begin_src emacs-lisp
-(evil-define-key 'normal 'global (kbd "K") 'lsp-ui-doc-show)
+;(evil-define-key 'normal 'global (kbd "K") '$lsp-ui-doc-glance-or-focus)
+(evil-define-key 'normal 'global (kbd "K") 'lsp-ui-doc-glance)
+(evil-define-key 'normal 'global (kbd "=") 'lsp-ui-doc-focus-frame)
 #+end_src
 
 ** Appearance =SPC a=
