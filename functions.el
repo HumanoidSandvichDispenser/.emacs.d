@@ -98,7 +98,8 @@ two curly braces, otherwise do a regular newline and indent"
       (progn (newline-and-indent)
              (split-line)
              (indent-for-tab-command))
-    (newline-and-indent)))
+    (newline-and-indent)
+    (indent-relative-first-indent-point)))
 
 (defun $prog-delete-trailing-whitespace ()
   (interactive)
@@ -163,3 +164,12 @@ already open, focus onto it."
     (message "Not visible")
     (lsp-ui-doc-unfocus-frame)
     (lsp-ui-doc-glance)))
+
+(defun $org-reset-latex-previews ()
+  "Rerenders all LaTeX previews in the buffer"
+  (org-clear-latex-preview))
+
+(defun $tab-maybe-indent ()
+  (if always-insert-tab
+      (insert-tab)
+      (indent-for-tab-command)))

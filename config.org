@@ -15,6 +15,7 @@
 (setq-default indent-tabs-mode nil) ; disable tabs
 (setq-default tab-width 4) ; 4 spaces = 1 tab
 (setq indent-line-function 'insert-tab) ; spaces as tabs
+(setq tab-always-indent nil)
 #+end_src
 
 Enable autopairs and autoindentation.
@@ -35,12 +36,16 @@ Confirm exiting emacs.
 (setq confirm-kill-emacs #'y-or-n-p)
 #+end_src
 
+** Emacsclient Dashboard Fix
+
 Make sure ~emacsclient~ starts up with the dashboard buffer by default:
 
 #+begin_src emacs-lisp
 (setq initial-buffer-choice (lambda ()
                               (get-buffer "*dashboard*")))
 #+end_src
+
+** Superword Mode
 
 Enable ~superword-mode~ so underscores are treated as words, which is respected by ~evil-mode~.
 
@@ -83,6 +88,14 @@ Backups must be placed on a mount partition (where all my documents are normally
  kept-new-versions 6
  kept-old-versions 2
  version-control t)
+#+end_src
+
+** Fill Column
+
+Set the fill column to 81. 80 characters is the standard line length.
+
+#+begin_src emacs-lisp
+(setq fill-column 82)
 #+end_src
 
 * Packages
@@ -150,7 +163,8 @@ Configure ~evil-mode~ variables
 
 (setq evil-normal-state-cursor '(box)
       evil-insert-state-cursor '(bar)
-      evil-visual-state-cursor '(hollow))
+      evil-visual-state-cursor '(hollow)
+      evil-emacs-state-cursor '(bar))
 #+end_src
 
 *** Evil Collection
@@ -362,9 +376,18 @@ Use the modeline from Doom Emacs.
   :init
   (doom-modeline-mode 1)
   :config
-  (setq doom-modeline-height 32))
+  (setq doom-modeline-height 32)
+  :disabled t)
 
 (column-number-mode)
+#+end_src
+
+*** Moodline
+
+#+begin_src emacs-lisp
+(use-package mood-line
+  :config
+  (mood-line-mode))
 #+end_src
 
 *** Dashboard
@@ -566,7 +589,7 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
 #+begin_src emacs-lisp
 (use-package olivetti
   :config
-  (setq-default olivetti-body-width 82)
+  (setq-default olivetti-body-width 90)
   :hook
   (org-mode . olivetti-mode))
 #+end_src
@@ -847,6 +870,21 @@ Show LSP documentation with =K= if ~lsp-ui-doc-mode~ is enabled.
 (evil-define-key 'normal 'global (kbd "=") 'lsp-ui-doc-focus-frame)
 #+end_src
 
+In evil mode, use =M-u= as the universal argument.
+
+#+begin_src emacs-lisp
+(evil-define-key '(normal visual) 'global (kbd "M-u") 'universal-argument)
+#+end_src
+
+** Leader =SPC=
+
+#+begin_src emacs-lisp
+(general-define-key
+ :prefix "<leader>"
+ :keymaps 'normal
+ "SPC" '($tabspaces-counsel-switch-buffer :which-key "Switch buffer"))
+#+end_src
+
 ** Appearance =SPC a=
 
 #+begin_src emacs-lisp
@@ -885,7 +923,8 @@ Show LSP documentation with =K= if ~lsp-ui-doc-mode~ is enabled.
  :keymaps 'normal
  "" '(nil :which-key "toggle")
  "w" 'writeroom-mode
- "o" 'olivetti-mode)
+ "o" 'olivetti-mode
+ "c" 'canvas-mode)
 #+end_src
 
 ** File =SPC f=
@@ -916,6 +955,7 @@ Show LSP documentation with =K= if ~lsp-ui-doc-mode~ is enabled.
  "B" '(switch-to-buffer :which-key "Pick from all buffers")
  "r" '(revert-buffer :which-key "Revert buffer")
  "d" '(kill-current-buffer :which-key "Kill buffer")
+ "q" '(kill-buffer-and-window :which-key "Kill buffer and window")
  "s" '($switch-to-scratch-buffer :which-key "Scratch buffer")
  "n" '(evil-buffer-new :which-key "New buffer"))
 #+end_src
@@ -1068,6 +1108,16 @@ Show LSP documentation with =K= if ~lsp-ui-doc-mode~ is enabled.
  "a" '(org-agenda))
 #+end_src
 
+* Mode-Specific Hooks
+
+#+begin_src emacs-lisp
+(defun $hook-html ()
+  (mixed-pitch-mode -1)
+  (electric-indent-mode -1))
+
+(add-hook 'html-mode #'$hook-html)
+#+end_src
+
 * Orgmode
 
 Org mode is the best part of emacs; even if I switch back to Vim/Neovim, I will still be using org mode in Emacs as it is just that great.
@@ -1099,6 +1149,12 @@ Log when a TODO item is marked as done.
 
 #+begin_src emacs-lisp
 (setq org-log-done 'time)
+#+end_src
+
+Set LaTeX preview directory to a temporary directory, so it is not stored where the org file is.
+
+#+begin_src emacs-lisp
+(setq org-preview-latex-image-directory "~/mnt/emacs-backup/latex")
 #+end_src
 
 ** Appearance
