@@ -4,6 +4,11 @@
   "functions.el"
   user-emacs-directory))
 
+(load-file
+ (expand-file-name
+  "ivy-rich-fix.el"
+  user-emacs-directory))
+
 ; load our configuration
 (org-babel-load-file
  (expand-file-name
