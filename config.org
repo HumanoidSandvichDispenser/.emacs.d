@@ -190,6 +190,21 @@ Avy allows easymotion-like searching and jumping.
   :after evil)
 #+end_src
 
+*** Evil Goggles
+
+Highlight any evil operation such as yanking and changing text.
+
+#+begin_src emacs-lisp
+(use-package evil-goggles
+  :after magit
+  :config
+  (evil-goggles-mode)
+  (evil-goggles-use-magit-faces)
+  (setq evil-goggles-duration 0
+        evil-goggles-async-duration 2
+        evil-goggles-enable-delete nil))
+#+end_src
+
 ** Content/Dependencies
 
 *** All the Icons
@@ -243,7 +258,10 @@ Write cleaner keybindings and mappings.
   :config
   (ivy-mode)
   (setq ivy-re-builders-alist
-        '((t . ivy--regex-ignore-order))))
+        '((t . ivy--regex-ignore-order))
+        ivy-virtual-abbreviate 'abbreviate
+        uniquify-buffer-name-style 'forward
+        uniquify-min-dir-content 2))
 (use-package counsel
   :config
   (counsel-mode))
@@ -640,7 +658,8 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
 (use-package which-key
   :config
   (which-key-mode)
-  (setq which-key-idle-delay 0.25))
+  (setq which-key-idle-delay 1)
+  (setq which-key-idle-secondary-delay 0))
 #+end_src
 
 ** Language Support
@@ -678,6 +697,16 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
 (use-package web-mode
   :config
   (setq web-mode-enable-auto-pairing nil))
+#+end_src
+
+*** Pyright
+
+#+begin_src emacs-lisp
+(use-package lsp-pyright
+  :hook
+  (python-mode . (lambda ()
+                   (require 'lsp-pyright)
+                   (lsp))))
 #+end_src
 
 ** LSP / Autocomplete
@@ -1162,14 +1191,23 @@ In evil mode, use =M-u= as the universal argument.
  "a" '(org-agenda))
 #+end_src
 
+** Code =SPC c=
+
+#+begin_src emacs-lisp
+(general-define-key
+ :prefix "<leader> c"
+ :keymaps 'normal
+ "" '(nil :which-key "code")
+ "r" '(lsp-find-references :which-key "Find references")
+ "d" '(lsp-find-definition :which-key "Find definition")
+ "i" '(lsp-find-implementation :which-key "Find implementation")
+ "c" '(lsp-code-actions-at-point :which-key "Code actions"))
+#+end_src
+
 * Mode-Specific Hooks
 
 #+begin_src emacs-lisp
-(defun $hook-html ()
-  (mixed-pitch-mode -1)
-  (electric-indent-mode -1))
-
-(add-hook 'html-mode #'$hook-html)
+(add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
 #+end_src
 
 * Orgmode
@@ -1250,6 +1288,12 @@ Hide emphasis markers
 
 #+begin_src emacs-lisp
 (setq org-hide-emphasis-markers t)
+#+end_src
+
+Specify the size of the image using ~#+attr_org~
+
+#+begin_src emacs-lisp
+(setq org-image-actual-width nil)
 #+end_src
 
 ** Org-specific Keybinds
