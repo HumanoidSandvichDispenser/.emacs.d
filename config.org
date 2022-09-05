@@ -260,7 +260,7 @@ Write cleaner keybindings and mappings.
   (setq ivy-re-builders-alist
         '((t . ivy--regex-ignore-order))
         ivy-virtual-abbreviate 'abbreviate
-        uniquify-buffer-name-style 'forward
+        uniquify-buffer-name-style 'post-forward-angle-brackets
         uniquify-min-dir-content 2))
 (use-package counsel
   :config

@@ -95,7 +95,7 @@ two curly braces, otherwise do a regular newline and indent"
   (interactive)
   (if (and (equal (char-before) 123) ; {
            (equal (char-after) 125)) ; }
-      (if ()
+      (progn
         (newline-and-indent)
              (split-line)
              (indent-for-tab-command))
