@@ -284,7 +284,7 @@ The posframe is positioned at the top right to make it visually similar to Visua
 (use-package ivy-posframe
   :config
   (setq ivy-posframe-display-functions-alist
-        '((t . ivy-posframe-display-at-frame-top-center)))
+        '((t . ivy-posframe-display-at-frame-center)))
   (setq ivy-posframe-parameters '((left-fringe . 16)
                                   (right-fringe . 16))
         ivy-posframe-size-function '$ivy-posframe-get-size)
@@ -618,6 +618,12 @@ Render faster LaTeX previews in org mode.
   (org-auctex-mode))
 #+end_src
 
+*** HTMLize
+
+#+begin_src emacs-lisp
+(use-package htmlize)
+#+end_src
+
 ** Writing Modes
 
 *** Writeroom Mode
@@ -672,6 +678,14 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
   (rust-mode . lsp))
 #+end_src
 
+*** Ron
+
+Support for Rust Object Notation
+
+#+begin_src emacs-lisp
+(use-package ron-mode)
+#+end_src
+
 *** Rust Org-Babel
 
 Enables Org Babel support for Rust
@@ -696,7 +710,8 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
 #+begin_src emacs-lisp
 (use-package web-mode
   :config
-  (setq web-mode-enable-auto-pairing nil))
+  (setq web-mode-enable-auto-pairing nil)
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode)))
 #+end_src
 
 *** Pyright
@@ -707,6 +722,14 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
   (python-mode . (lambda ()
                    (require 'lsp-pyright)
                    (lsp))))
+#+end_src
+
+*** C# Mode
+
+#+begin_src emacs-lisp
+(use-package csharp-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
 #+end_src
 
 ** LSP / Autocomplete
@@ -907,6 +930,8 @@ Automatically indent on newline.
   'global
   (kbd "C-S-c")
   'evil-yank)
+
+(define-key minibuffer-local-map (kbd "C-S-v") 'clipboard-yank)
 
 (evil-define-key 'normal
   'global
@@ -1204,12 +1229,6 @@ In evil mode, use =M-u= as the universal argument.
  "c" '(lsp-code-actions-at-point :which-key "Code actions"))
 #+end_src
 
-* Mode-Specific Hooks
-
-#+begin_src emacs-lisp
-(add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
-#+end_src
-
 * Orgmode
 
 Org mode is the best part of emacs; even if I switch back to Vim/Neovim, I will still be using org mode in Emacs as it is just that great.
@@ -1247,6 +1266,12 @@ Set LaTeX preview directory to a temporary directory, so it is not stored where 
 
 #+begin_src emacs-lisp
 (setq org-preview-latex-image-directory "~/mnt/emacs-backup/latex")
+#+end_src
+
+Enable shift selection in org mode.
+
+#+begin_src emacs-lisp
+(setq org-support-shift-select t)
 #+end_src
 
 ** Appearance
