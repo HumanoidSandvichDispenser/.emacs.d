@@ -79,7 +79,7 @@ of the line."
 
 (defun $ivy-posframe-get-size ()
   "Set the ivy-posframe size according to the current frame."
-  (let ((height (or ivy-posframe-height (or ivy-height 10)))
+  (let ((height (or ivy-posframe-height (or ivy-height 20)))
         (width (min (or ivy-posframe-width 200) (round (* .75 (frame-width))))))
     (list :height height :width width :min-height height :min-width width)))
 
