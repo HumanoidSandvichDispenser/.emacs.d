@@ -17,6 +17,8 @@
 (setq sgml-basic-offset 4)
 (setq indent-line-function 'insert-tab) ; spaces as tabs
 (setq tab-always-indent nil)
+
+(setq-default c-basic-offset 4)
 #+end_src
 
 Enable autopairs and autoindentation.
@@ -526,7 +528,7 @@ Allows for buffers to have both ~variable-pitch~ faces and ~fixed-pitch~ faces.
 #+begin_src emacs-lisp
 (use-package mixed-pitch
   :hook
-  (text-mode . mixed-pitch-mode)
+  (org-mode . mixed-pitch-mode)
   :config
   (set-face-attribute 'variable-pitch
                       nil
@@ -696,7 +698,8 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
 #+begin_src emacs-lisp
 (use-package web-mode
   :config
-  (setq web-mode-enable-auto-pairing nil))
+  (setq web-mode-enable-auto-pairing nil)
+  (setq web-mode-script-padding 0))
 #+end_src
 
 *** Pyright
@@ -707,6 +710,18 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
   (python-mode . (lambda ()
                    (require 'lsp-pyright)
                    (lsp))))
+#+end_src
+
+*** Java
+
+#+begin_src emacs-lisp
+(use-package lsp-java)
+#+end_src
+
+*** Vue
+
+#+begin_src emacs-lisp
+(use-package vue-mode)
 #+end_src
 
 ** LSP / Autocomplete

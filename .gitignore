@@ -35,3 +35,8 @@ emojis/
 
 nohup.out
 config.el
+
+.lsp-session*
+amx-items
+auto.el
+request

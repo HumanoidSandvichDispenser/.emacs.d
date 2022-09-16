@@ -97,8 +97,8 @@ two curly braces, otherwise do a regular newline and indent"
            (equal (char-after) 125)) ; }
       (progn
         (newline-and-indent)
-             (split-line)
-             (indent-for-tab-command))
+        (split-line)
+        (indent-for-tab-command))
     (newline-and-indent)
     (indent-relative-first-indent-point)))
 
