@@ -714,8 +714,8 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
   :config
   (setq web-mode-enable-auto-pairing nil)
   (setq web-mode-script-padding 0)
+  (setq web-mode-style-padding 0)
   (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode)))
->>>>>>> 55486aed73baeea3a7f483ac2ff1da7c0cf7c0d3
 #+end_src
 
 *** Pyright
@@ -732,12 +732,6 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
 
 #+begin_src emacs-lisp
 (use-package lsp-java)
-#+end_src
-
-*** Vue
-
-#+begin_src emacs-lisp
-(use-package vue-mode)
 #+end_src
 
 *** C# Mode
@@ -846,14 +840,6 @@ Highlight diffs on the gutter.
 (use-package diff-hl
   :config
   (global-diff-hl-mode))
-#+end_src
-
-** Mail
-
-*** mu4e
-
-#+begin_src emacs-lisp
-(use-package mu4e)
 #+end_src
 
 * Appearance
