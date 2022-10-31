@@ -40,3 +40,4 @@ config.el
 amx-items
 auto.el
 request
+.cache

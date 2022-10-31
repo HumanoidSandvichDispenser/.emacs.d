@@ -12,7 +12,7 @@
           (set-visited-file-name new-name t t)))))))
 
 (defun find-config-file ()
-  "Opens the configuration file."
+  "Open the configuration file."
   (interactive)
   (find-file "~/.emacs.d/config.org"))
 
@@ -59,7 +59,7 @@ of the line."
         (t (evil-ret 1))))
 
 (defun $org-make-todo ()
-  "Toggles the current line between a TODO heading and a non-heading"
+  "Toggle the current line between a TODO heading and a non-heading."
   (interactive)
   (if (looking-at "^\\*")
       (progn
@@ -70,12 +70,9 @@ of the line."
       (org-todo 'nextset))))
 
 (defun $kill-emacs-prompt (&optional prompt)
-  "Prompts the user whether to kill emacs or not."
+  "Display with optional PROMPT to kill Emacs."
   (interactive)
-  (y-or-n-p (format "%s" (or prompt "Quit emacs? "))))
-
-(defun $find-file-perspective ()
-  "Finds a file and ")
+  (y-or-n-p (format "%s?" (or prompt "Quit emacs"))))
 
 (defun $ivy-posframe-get-size ()
   "Set the ivy-posframe size according to the current frame."
@@ -99,13 +96,14 @@ two curly braces, otherwise do a regular newline and indent"
         (newline-and-indent)
         (split-line)
         (indent-for-tab-command))
-    (newline-and-indent)
+    (newline)
     (indent-relative-first-indent-point)))
 
 (defun $prog-delete-trailing-whitespace ()
+  "Deletes trailing whitespace only in 'prog-mode'."
   (interactive)
   (when (derived-mode-p 'prog-mode)
-        (delete-trailing-whitespace)))
+    (delete-trailing-whitespace)))
 
 (defun $find-file-or-project ()
   "Find file in the project root or the current directory if not in a project."
@@ -174,3 +172,9 @@ already open, focus onto it."
   (if always-insert-tab
       (insert-tab)
       (indent-for-tab-command)))
+
+(defun $treesitter ()
+  "Quick command that enables tree sitter parsing and highlighting"
+  (interactive)
+  (tree-sitter-mode)
+  (tree-sitter-hl-mode))
