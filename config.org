@@ -387,6 +387,12 @@ Generates HTML snippets from CSS selectors.
 (use-package emmet-mode)
 #+end_src
 
+*** Aggressive Indent
+
+#+begin_src emacs-lisp
+(use-package aggressive-indent)
+#+end_src
+
 ** Themes
 
 *** Doom Themes
@@ -786,19 +792,6 @@ Implements language server for markup documents (LaTeX, markdown, Org, etc.)
   (setq lsp-ui-doc-position 'at-point))
 #+end_src
 
-*** Company
-
-Text completion for Emacs.
-
-#+begin_src emacs-lisp
-(use-package company
-  :config (add-hook 'after-init-hook 'global-company-mode)
-  :after lsp-mode
-  :custom-face
-  (company-tooltip
-   ((t (:family "Iosevka Sandvich")))))
-#+end_src
-
 *** Flycheck
 
 #+begin_src emacs-lisp
@@ -823,6 +816,32 @@ Use premade snippets.
 (use-package yasnippet-snippets
   :after yasnippet)
 #+end_src
+
+File templates using YASnippet.
+
+#+begin_src emacs-lisp
+(use-package yatemplate
+  :after yasnippet
+  :config
+  (yatemplate-fill-alist))
+#+end_src
+
+*** Company
+
+Text completion for Emacs.
+
+#+begin_src emacs-lisp
+(use-package company
+  :config (add-hook 'after-init-hook 'global-company-mode)
+  :after (lsp-mode yasnippet)
+  :custom-face
+  (company-tooltip
+   ((t (:family "Iosevka Sandvich")))))
+#+end_src
+
+*** YASnippet-Company
+
+
 
 ** Project Management
 
