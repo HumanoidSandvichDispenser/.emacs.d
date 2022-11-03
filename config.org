@@ -104,6 +104,14 @@ Set the fill column to 81. 80 characters is the standard line length.
 (setq fill-column 82)
 #+end_src
 
+** Start Server
+
+Start the Emacs server so new frames can be created with ~emacsclient~.
+
+#+begin_src emacs-lisp
+(server-start)
+#+end_src
+
 * Packages
 
 Install ~straight.el~ without using ~package.el~ if it is not already installed:
@@ -361,7 +369,14 @@ Takes clean and fancy snapshots of any selected region.
 *** Treemacs
 
 #+begin_src emacs-lisp
-(use-package treemacs)
+(use-package treemacs
+  :config
+  (progn
+    (treemacs-create-icon :icon "+" :extensions (dir-closed))
+    (treemacs-create-icon :icon "-" :extensions (dir-open))))
+
+(use-package treemacs-tab-bar
+  :after treemacs)
 #+end_src
 
 *** Emmet Mode
@@ -742,6 +757,14 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
   (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
 #+end_src
 
+*** LTeX Language Server
+
+Implements language server for markup documents (LaTeX, markdown, Org, etc.)
+
+#+begin_src emacs-lisp
+(use-package ltex-ls)
+#+end_src
+
 ** LSP / Autocomplete
 
 *** LSP Mode
@@ -850,11 +873,18 @@ Add line numbers to programming modes.
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 #+end_src
 
-Split help buffers horizontally.
+Enable ligatures in programming modes.
+
+#+begin_src emacs-lisp
+(add-hook 'prog-mode-hook 'ligature-mode)
+#+end_src
+
+Split help buffers and error lists horizontally.
 
 #+begin_src emacs-lisp
 (add-to-list 'display-buffer-alist
-             '("*helpful" display-buffer-at-bottom))
+             '("*helpful" display-buffer-at-bottom
+               "*Flycheck errors*" display-buffer-at-bottom))
 #+end_src
 
 Set fringes
@@ -1205,7 +1235,8 @@ In evil mode, use =M-u= as the universal argument.
          (tab-bar-select-tab 7))
        :which-key "Switch to tab 7")
  "r" '(tab-bar-rename-tab :which-key "Rename tab")
- "d" '(tabspaces-kill-buffers-close-workspace :which-key "Delete tab"))
+ "d" '(tabspaces-kill-buffers-close-workspace :which-key "Delete tab")
+ "n" '(tab-new :which-key "New tab"))
 #+end_src
 
 ** Open =SPC o=
@@ -1228,7 +1259,8 @@ In evil mode, use =M-u= as the universal argument.
  "r" '(lsp-find-references :which-key "Find references")
  "d" '(lsp-find-definition :which-key "Find definition")
  "i" '(lsp-find-implementation :which-key "Find implementation")
- "c" '(lsp-code-actions-at-point :which-key "Code actions"))
+ "c" '(lsp-code-actions-at-point :which-key "Code actions")
+ "e" '(lsp-treemacs-errors-list :which-key "Errors list"))
 #+end_src
 
 * Orgmode

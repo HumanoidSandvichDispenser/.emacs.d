@@ -99,7 +99,7 @@ two curly braces, otherwise do a regular newline and indent"
         (newline-and-indent)
         (split-line)
         (indent-for-tab-command))
-    (newline-and-indent)
+    (electric-newline-and-maybe-indent)
     (indent-relative-first-indent-point)))
 
 (defun $prog-delete-trailing-whitespace ()
