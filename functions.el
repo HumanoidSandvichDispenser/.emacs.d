@@ -96,8 +96,10 @@ two curly braces, otherwise do a regular newline and indent"
         (newline-and-indent)
         (split-line)
         (indent-for-tab-command))
-    (electric-newline-and-maybe-indent)
-    (indent-relative-first-indent-point)))
+    (if (derived-mode-p 'prog-mode)
+        (newline-and-indent)
+      (electric-newline-and-maybe-indent)
+      (indent-relative-first-indent-point))))
 
 (defun $prog-delete-trailing-whitespace ()
   "Deletes trailing whitespace only in 'prog-mode'."
@@ -115,8 +117,7 @@ two curly braces, otherwise do a regular newline and indent"
       (call-interactively 'find-file))))
 
 (defun $tabspaces-counsel-switch-buffer ()
-  "A version of `tabspaces-switch-to-buffer' which respects tab-mode
-workspaces with `tabspaces-mode'"
+  "A version of `tabspaces-switch-to-buffer' which respects tab-mode workspaces with `tabspaces-mode'."
   (interactive)
    (let ((blst (mapcar #'buffer-name (tabspaces--buffer-list))))
      (ivy-read "Switch to local buffer: " blst
@@ -130,12 +131,12 @@ workspaces with `tabspaces-mode'"
                :caller 'ivy-switch-buffer)))
 
 (defun $switch-to-scratch-buffer ()
-  "Switches to the scratch buffer"
+  "Switch to the scratch buffer"
   (interactive)
   (switch-to-buffer "*scratch*"))
 
 (defun $tab-bar-tab-name-format (tab i)
-  "Format function used for displaying tab names in `tab-bar-mode'"
+  "Format a tab name given a TAB and I index `tab-bar-mode'."
   (let ((current-p (eq (car tab) 'current-tab)))
     (propertize
      (concat "  "
@@ -150,8 +151,7 @@ workspaces with `tabspaces-mode'"
      'face (funcall tab-bar-tab-face-function tab))))
 
 (defun $lsp-ui-doc-glance-or-focus ()
-  "Glances over hover information popup. If the information popup is
-already open, focus onto it."
+  "Glance over hover information popup.  If the information popup is already open, focus onto it."
   (interactive)
   (if (lsp-ui-doc--frame-visible-p)
       (progn
@@ -164,17 +164,28 @@ already open, focus onto it."
     (lsp-ui-doc-unfocus-frame)
     (lsp-ui-doc-glance)))
 
-(defun $org-reset-latex-previews ()
-  "Rerenders all LaTeX previews in the buffer"
-  (org-clear-latex-preview))
-
-(defun $tab-maybe-indent ()
-  (if always-insert-tab
-      (insert-tab)
-      (indent-for-tab-command)))
-
-(defun $treesitter ()
-  "Quick command that enables tree sitter parsing and highlighting"
+(defun $tabspaces-kill-stray-buffers-close-workspace ()
+  "Kill the current tab as well as buffers that do not exist in any other workspace."
   (interactive)
-  (tree-sitter-mode)
-  (tree-sitter-hl-mode))
+  (let ((buffers (tabspaces--buffer-list))
+        (tabs (tabspaces--list-tabspaces)))
+    (dolist (buffer buffers)
+      (let ((tab-exists nil)
+            (idx 0))
+        ;; check if buffer exists in other tabs
+        (dolist (tab tabs)
+          ;; filter out the current tab or break out if tab-exists is already `t'
+          (if (and (not tab-exists) (/= idx (tab-bar--current-tab-index)))
+              ;; if the buffer is a member of the tab's bufferlist
+              (when (member buffer (tabspaces--buffer-list nil idx))
+                (setq tab-exists t)))
+          (cl-incf idx))
+        ;; kill buffers that are not in any other tab
+        (when (not tab-exists)
+          (message "buffer %s NOT in other tabs" buffer)
+          (kill-buffer buffer)))))
+  ;; close the workspace
+  (tabspaces-close-workspace))
+
+(provide 'functions)
+;;; functions.el ends here

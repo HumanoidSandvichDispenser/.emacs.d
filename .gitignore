@@ -42,3 +42,4 @@ auto.el
 request
 .cache/
 .dap-breakpoints
+eln-cache

@@ -298,7 +298,9 @@ The posframe is positioned at the top right to make it visually similar to Visua
 (use-package ivy-posframe
   :config
   (setq ivy-posframe-display-functions-alist
-        '((t . ivy-posframe-display-at-frame-center)))
+        '((swiper . ivy-posframe-display-at-point)
+          (complete-symbol . ivy-posframe-display-at-point)
+          (t . ivy-posframe-display-at-frame-center)))
   (setq ivy-posframe-parameters '((left-fringe . 16)
                                   (right-fringe . 16))
         ivy-posframe-size-function '$ivy-posframe-get-size)
@@ -397,6 +399,12 @@ Generates HTML snippets from CSS selectors.
 (use-package aggressive-indent)
 #+end_src
 
+*** Ripgrep
+
+#+begin_src emacs-lisp
+(use-package rg)
+#+end_src
+
 ** Themes
 
 *** Doom Themes
@@ -458,11 +466,6 @@ Use the modeline from Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package dashboard
-  :init
-  (load-file
-   (expand-file-name
-    "dashboard-widgets.el"
-    user-emacs-directory))
   :config
   (dashboard-setup-startup-hook)
   (setq dashboard-startup-banner
@@ -471,9 +474,7 @@ Use the modeline from Doom Emacs.
          user-emacs-directory)
         dashboard-center-content t
         dashboard-items '((projects . 5)
-                          (agenda . 5)))
-  (add-to-list 'dashboard-item-generators  '(isc . $dashboard-isc-threat-level))
-  (add-to-list 'dashboard-items '(isc) t))
+                          (agenda . 5))))
 #+end_src
 
 *** Rainbow Delimiers
@@ -763,8 +764,9 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
 
 #+begin_src emacs-lisp
 (use-package csharp-mode
-  :config
-  (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
+  :hook
+  (csharp-mode . tree-sitter-hl-mode)
+  (csharp-mode . lsp))
 #+end_src
 
 *** LTeX Language Server
@@ -835,8 +837,10 @@ Text completion for Emacs.
 
 #+begin_src emacs-lisp
 (use-package company
-  :config (add-hook 'after-init-hook 'global-company-mode)
   :after (lsp-mode yasnippet)
+  :config
+  (add-hook 'after-init-hook 'global-company-mode)
+  (setq completion-ignore-case t)
   :custom-face
   (company-tooltip
    ((t (:family "Iosevka Sandvich")))))
@@ -906,7 +910,7 @@ Split help buffers and error lists horizontally.
 #+begin_src emacs-lisp
 (add-to-list 'display-buffer-alist
              '("*helpful" display-buffer-at-bottom
-               "*Flycheck errors*" display-buffer-at-bottom))
+               "*Flycheck" display-buffer-at-bottom))
 #+end_src
 
 Set fringes
@@ -1169,6 +1173,7 @@ In evil mode, use =M-u= as the universal argument.
  "f" '(helpful-function :which-key "Describe function")
  "m" '(helpful-macro :which-key "Describe macro")
  "k" '(helpful-key :which-key "Describe key")
+ "s" '(helpful-symbol :which-key "Describe symbol")
  "q" '(helpful-kill-buffers :which-key "Kill all helpful buffers"))
 #+end_src
 
@@ -1268,7 +1273,7 @@ In evil mode, use =M-u= as the universal argument.
          (tab-bar-select-tab 7))
        :which-key "Switch to tab 7")
  "r" '(tab-bar-rename-tab :which-key "Rename tab")
- "d" '(tabspaces-kill-buffers-close-workspace :which-key "Delete tab")
+ "d" '($tabspaces-kill-stray-buffers-close-workspace :which-key "Close tab")
  "n" '(tab-new :which-key "New tab"))
 #+end_src
 
