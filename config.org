@@ -1297,7 +1297,7 @@ In evil mode, use =M-u= as the universal argument.
  "r" '(lsp-find-references :which-key "Find references")
  "d" '(lsp-find-definition :which-key "Find definition")
  "i" '(lsp-find-implementation :which-key "Find implementation")
- "c" '(lsp-code-actions-at-point :which-key "Code actions")
+ "c" '(lsp-execute-code-action :which-key "Code actions")
  "e" '(lsp-treemacs-errors-list :which-key "Errors list"))
 #+end_src
 
