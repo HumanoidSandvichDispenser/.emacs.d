@@ -1,0 +1,15 @@
+#+TITLE: .emacs.d
+#+AUTHOR: HumanoidSandvichDispenser
+
+Here is my Emacs configuration.
+
+* Screenshots
+
+#+attr_org: :width 512px
+[[./assets/sample.png]]
+
+#+attr_org: :width 512px
+[[./assets/sample-2.png]]
+
+#+attr_org: :width 512px
+[[./assets/sample-3.png]]

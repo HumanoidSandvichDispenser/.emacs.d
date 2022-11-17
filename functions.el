@@ -1,3 +1,7 @@
+;;; functions.el --- provides custom functions to extend Emacs
+;;; Commentary:
+(require 'tabspaces)
+
 (defun rename-file-and-buffer ()
   "Rename the current buffer and file it is visiting."
   (interactive)
@@ -165,7 +169,7 @@ two curly braces, otherwise do a regular newline and indent"
     (lsp-ui-doc-glance)))
 
 (defun $tabspaces-kill-stray-buffers-close-workspace ()
-  "Kill the current tab as well as buffers that do not exist in any other workspace."
+  "Kill the current tab and buffers that do not exist in any other workspace."
   (interactive)
   (let ((buffers (tabspaces--buffer-list))
         (tabs (tabspaces--list-tabspaces)))
