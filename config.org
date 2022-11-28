@@ -1,4 +1,5 @@
 #+TITLE: HumanoidSandvichDispenser's Emacs Configuration
+#+AUTHOR: HumanoidSandvichDispenser
 #+PROPERTY: header-args :tangle yes :results silent
 #+STARTUP: indent inlineimages content
 
