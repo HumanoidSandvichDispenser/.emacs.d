@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Header
+# key: #h
+# --
+#+TITLE: $1
+#+DESCRIPTION: $2
+#+AUTHOR: HumanoidSandvichDispenser
+$0

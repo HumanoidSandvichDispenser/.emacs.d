@@ -269,7 +269,8 @@ Write cleaner keybindings and mappings.
   :config
   (ivy-mode)
   (setq ivy-re-builders-alist
-        '((t . ivy--regex-ignore-order))
+        '((swiper . regexp-quote)
+          (t . ivy--regex-ignore-order))
         ivy-virtual-abbreviate 'abbreviate
         uniquify-buffer-name-style 'post-forward-angle-brackets
         uniquify-min-dir-content 2))
@@ -653,6 +654,16 @@ Render faster LaTeX previews in org mode.
 (use-package htmlize)
 #+end_src
 
+*** Highlight TODO
+
+#+begin_src emacs-lisp
+(use-package hl-todo
+  :config
+  (global-hl-todo-mode)
+  (setq hl-todo-keyword-faces
+        '(("TODO" . ,(face-foreground 'all-the-icons-yellow)))))
+#+end_src
+
 ** Writing Modes
 
 *** Writeroom Mode
@@ -814,6 +825,9 @@ Yet Another Snippet template system for Emacs.
 #+begin_src emacs-lisp
 (use-package yasnippet
   :config
+  (yas-snippet-dirs '((expand-file-name
+                      "snippets"
+                      user-emacs-directory)))
   (yas-global-mode t))
 #+end_src
 
@@ -1319,11 +1333,8 @@ This function toggles entries between TODO and DONE.
     (save-excursion
         (org-back-to-heading t) ;; Make sure command works even if point is
                                 ;; below target heading
-        (cond ((looking-at "\*+ TODO")
-                (org-todo "DONE"))
-            ((looking-at "\*+ DONE")
-                (org-todo "TODO"))
-            (t (message "Can only toggle between TODO and DONE.")))))
+        (when (looking-at "\*+ ")
+          (org-todo))))
 #+end_src
 
 Sets the directory where my org files are usually located.
@@ -1477,4 +1488,15 @@ Require the Org ID package
 
 #+begin_src emacs-lisp
 (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+#+end_src
+
+** Org TODO Keywords
+
+Enable additional keywords/states for org-mode.
+
+#+begin_src emacs-lisp
+(setq org-todo-keywords
+      '((sequence "TODO" "STARTED" "DONE"))
+      org-todo-keyword-faces
+      '(("STARTED" ,(face-foreground 'all-the-icons-yellow))))
 #+end_src

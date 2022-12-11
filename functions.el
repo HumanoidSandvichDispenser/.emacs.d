@@ -1,6 +1,5 @@
 ;;; functions.el --- provides custom functions to extend Emacs
 ;;; Commentary:
-;(require 'tabspaces)
 
 (defun rename-file-and-buffer ()
   "Rename the current buffer and file it is visiting."
@@ -56,11 +55,24 @@ of the line."
   (evil-append 1))
 
 (defun $org-ret ()
-  "Perform special actions in specific org blocks. Otherwise perform evil-ret"
+  "Perform special actions when pressing RET."
   (interactive)
+  (move-beginning-of-line 1)
   (cond ((org-in-src-block-p) (org-edit-special))
-        ((looking-at "^\\*") (org-toggle-todo))
-        (t (evil-ret 1))))
+        (t (let ((found-action . nil))
+             (save-excursion
+               (org-back-to-heading t)
+               (when (looking-at "\*+ ")
+                 (org-todo)
+                 (setq found-action t)))
+             ;; do evil-ret if we can't perform any other action
+             (when (not found-action)
+               (evil-ret 1))))))
+;; TODO
+
+(defun testlol ()
+  (interactive)
+  "#FFFF00")
 
 (defun $org-make-todo ()
   "Toggle the current line between a TODO heading and a non-heading."

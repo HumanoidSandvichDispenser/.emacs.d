@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: C# doc
+# key: ///
+# --
+/// <summary>
+/// $0
+/// </summary>
