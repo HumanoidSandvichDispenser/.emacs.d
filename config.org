@@ -742,7 +742,8 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
   (setq web-mode-enable-auto-pairing nil)
   (setq web-mode-script-padding 0)
   (setq web-mode-style-padding 0)
-  (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode)))
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.vue\\'" . web-mode)))
 #+end_src
 
 *** Pyright
@@ -847,10 +848,6 @@ Text completion for Emacs.
    ((t (:family "Iosevka Sandvich")))))
 #+end_src
 
-*** YASnippet-Company
-
-
-
 ** Project Management
 
 *** Tabspaces
@@ -951,6 +948,14 @@ Set the fringe style to half-width.
 
 #+begin_src emacs-lisp
 (fringe-mode '(4 . 2))
+#+end_src
+
+** Shell Mode Color Output
+
+Enable color output when running a shell command.
+
+#+begin_src emacs-lisp
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 #+end_src
 
 * Keybinds

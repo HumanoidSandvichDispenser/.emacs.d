@@ -1,6 +1,6 @@
 ;;; functions.el --- provides custom functions to extend Emacs
 ;;; Commentary:
-(require 'tabspaces)
+;(require 'tabspaces)
 
 (defun rename-file-and-buffer ()
   "Rename the current buffer and file it is visiting."
