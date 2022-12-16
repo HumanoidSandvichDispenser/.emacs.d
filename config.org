@@ -296,13 +296,15 @@ Display ~ivy~ using posframes to show it at various locations.
 
 The posframe is positioned at the top right to make it visually similar to Visual Studio Code's command palette.
 
+There are some issues with the posframe such as being unable to input text when unfocusing and focusing, so it is only enabled for ~swiper~.
+
 #+begin_src emacs-lisp
 (use-package ivy-posframe
   :config
   (setq ivy-posframe-display-functions-alist
         '((swiper . ivy-posframe-display-at-point)
           (complete-symbol . ivy-posframe-display-at-point)
-          (t . ivy-posframe-display-at-frame-center)))
+          (t . ivy-display-function-fallback)))
   (setq ivy-posframe-parameters '((left-fringe . 16)
                                   (right-fringe . 16))
         ivy-posframe-size-function '$ivy-posframe-get-size)
@@ -508,6 +510,9 @@ This enables /good/ smooth scrolling when using the mouse.
 *** Org Superstar
 
 Customize org-mode stars.
+
+#+attr_org: :width 512
+[[./assets/superstar.png]]
 
 #+begin_src emacs-lisp
 (use-package
@@ -767,12 +772,6 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
                    (lsp))))
 #+end_src
 
-*** Java
-
-#+begin_src emacs-lisp
-(use-package lsp-java)
-#+end_src
-
 *** C# Mode
 
 #+begin_src emacs-lisp
@@ -787,6 +786,13 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
 Implements language server for markup documents (LaTeX, markdown, Org, etc.)
 
 #+begin_src emacs-lisp
+#+end_src
+
+*** Vue/Volar
+
+#+begin_src emacs-lisp
+(use-package lsp-volar
+  :straight (:host github :repo "jadestrong/lsp-volar"))
 #+end_src
 
 ** LSP / Autocomplete
