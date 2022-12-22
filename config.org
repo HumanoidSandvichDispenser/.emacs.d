@@ -724,9 +724,7 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
 *** Rust
 
 #+begin_src emacs-lisp
-(use-package rust-mode
-  :hook
-  (rust-mode . lsp))
+(use-package rust-mode)
 #+end_src
 
 *** Ron
@@ -749,9 +747,7 @@ Enables Org Babel support for Rust
 *** Typescript
 
 #+begin_src emacs-lisp
-(use-package typescript-mode
-  :hook
-  (typescript-mode . lsp))
+(use-package typescript-mode)
 #+end_src
 
 *** Web Mode
@@ -784,8 +780,7 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
 #+begin_src emacs-lisp
 (use-package csharp-mode
   :hook
-  (csharp-mode . tree-sitter-hl-mode)
-  (csharp-mode . lsp))
+  (csharp-mode . tree-sitter-hl-mode))
 #+end_src
 
 *** LTeX Language Server
