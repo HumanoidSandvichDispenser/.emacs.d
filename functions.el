@@ -70,10 +70,6 @@ of the line."
                (evil-ret 1))))))
 ;; TODO
 
-(defun testlol ()
-  (interactive)
-  "#FFFF00")
-
 (defun $org-make-todo ()
   "Toggle the current line between a TODO heading and a non-heading."
   (interactive)
@@ -113,8 +109,10 @@ two curly braces, otherwise do a regular newline and indent"
         (split-line)
         (indent-for-tab-command))
     (if (derived-mode-p 'prog-mode)
-        (newline-and-indent)
-      (electric-newline-and-maybe-indent)
+        (progn
+          (newline)
+          (indent-according-to-mode))
+      (newline)
       (indent-relative-first-indent-point))))
 
 (defun $prog-delete-trailing-whitespace ()

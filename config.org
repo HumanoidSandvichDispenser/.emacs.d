@@ -223,7 +223,9 @@ Highlight any evil operation such as yanking and changing text.
 Install custom icons, required by various packages.
 
 #+begin_src emacs-lisp
-(use-package all-the-icons)
+(use-package all-the-icons
+  :config
+  (setq all-the-icons-scale-factor 0.8))
 #+end_src
 
 *** Emojify
@@ -302,8 +304,7 @@ There are some issues with the posframe such as being unable to input text when 
 (use-package ivy-posframe
   :config
   (setq ivy-posframe-display-functions-alist
-        '((swiper . ivy-posframe-display-at-point)
-          (complete-symbol . ivy-posframe-display-at-point)
+        '((complete-symbol . ivy-posframe-display-at-point)
           (t . ivy-display-function-fallback)))
   (setq ivy-posframe-parameters '((left-fringe . 16)
                                   (right-fringe . 16))
@@ -355,7 +356,8 @@ Automatically pairs delimiters such as brackets and braces. While ~electric-pair
 #+begin_src emacs-lisp
 (use-package smartparens
   :config
-  (smartparens-global-mode))
+  (smartparens-global-mode)
+  (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil))
 #+end_src
 
 *** Screenshot.el
@@ -451,8 +453,12 @@ Use the modeline from Doom Emacs.
   :init
   (doom-modeline-mode 1)
   :config
-  (setq doom-modeline-height 32)
-  (setq doom-modeline-workspace-name nil))
+  (setq doom-modeline-height 32
+        doom-modeline-workspace-name nil)
+  (doom-modeline-def-modeline 'main
+    '(bar matches buffer-info remote-host buffer-position parrot selection-info)
+    '(misc-info minor-modes checker input-method
+                buffer-encoding major-mode process vcs "  ")))
 
 (column-number-mode)
 #+end_src
@@ -766,6 +772,7 @@ Allows for smart editing with HTML files (smarter indentation for embedded CSS a
 
 #+begin_src emacs-lisp
 (use-package lsp-pyright
+  :disabled t
   :hook
   (python-mode . (lambda ()
                    (require 'lsp-pyright)
@@ -792,7 +799,16 @@ Implements language server for markup documents (LaTeX, markdown, Org, etc.)
 
 #+begin_src emacs-lisp
 (use-package lsp-volar
-  :straight (:host github :repo "jadestrong/lsp-volar"))
+  :disabled t
+  :straight (:host github :repo "jadestrong/lsp-volar")
+  :config
+  (setq lsp-typescript-tsdk "/usr/lib/node_modules/typescript/lib"))
+#+end_src
+
+*** Markdown
+
+#+begin_src emacs-lisp
+(use-package markdown-mode)
 #+end_src
 
 ** LSP / Autocomplete
@@ -801,27 +817,36 @@ Implements language server for markup documents (LaTeX, markdown, Org, etc.)
 
 #+begin_src emacs-lisp
 (use-package lsp-mode
+  :disabled t
   :config
   (setq lsp-signature-function 'lsp-signature-posframe
-        lsp-keep-workspace-alive nil))
+        lsp-keep-workspace-alive nil
+        lsp-disabled-clients '((typescript-mode . vue-semantic-server))
+        lsp-headerline-breadcrumb-enable nil))
+#+end_src
+
+This filters special characters which may otherwise cause the LSP client to log a specific error. See [[https://github.com/emacs-lsp/lsp-mode/issues/2681#issuecomment-1214902146][emacs-lsp/lsp-mode#2681]].
+
+#+begin_src emacs-lisp
+(defun lsp--json-parse-fix (orig &rest rest)
+  (while (re-search-forward "\\u0000" nil t)
+                (replace-match ""))
+              (apply orig rest))
+
+(advice-add 'json-parse-buffer :around #'lsp--json-parse-fix)
 #+end_src
 
 *** LSP UI
 
 #+begin_src emacs-lisp
 (use-package lsp-ui
-  :after
-  lsp-mode
+  :disabled t
+  :after lsp-mode
   :config
-  (setq lsp-ui-doc-position 'at-point))
-#+end_src
-
-*** Flycheck
-
-#+begin_src emacs-lisp
-(use-package flycheck
-  :init
-  (global-flycheck-mode))
+  (setq lsp-ui-doc-position 'at-point
+        lsp-ui-sideline-show-hover t
+        lsp-ui-sideline-show-code-actions t
+        lsp-ui-doc-use-webkit t))
 #+end_src
 
 *** YASnippet
@@ -831,10 +856,8 @@ Yet Another Snippet template system for Emacs.
 #+begin_src emacs-lisp
 (use-package yasnippet
   :config
-  (yas-snippet-dirs '((expand-file-name
-                      "snippets"
-                      user-emacs-directory)))
-  (yas-global-mode t))
+  (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
+  (yas-global-mode 1))
 #+end_src
 
 Use premade snippets.
@@ -853,16 +876,62 @@ File templates using YASnippet.
   (yatemplate-fill-alist))
 #+end_src
 
+*** lsp-bridge
+
+#+begin_src emacs-lisp
+;;(use-package lsp-bridge
+;;  :after '(posframe acm-terminal yasnippet)
+;;  :straight
+;;  (:type git
+;;   :host github
+;;   :repo "manateelazycat/lsp-bridge"
+;;   :files (:defaults "*"))
+;;  :config
+;;  (global-lsp-bridge-mode))
+(add-to-list 'load-path "~/.emacs.d/lsp-bridge")
+
+(require 'lsp-bridge)
+(global-lsp-bridge-mode)
+(setq lsp-bridge-enable-hover-diagnostic t)
+(add-hook 'lsp-bridge-ref-mode-hook 'evil-emacs-state)
+#+end_src
+
+*** Eglot
+
+#+begin_src emacs-lisp
+(use-package eglot
+  :disabled t
+  :config
+  (add-to-list 'eglot-server-programs
+               '(vue-mode)))
+#+end_src
+
+*** Flycheck
+
+#+begin_src emacs-lisp
+(use-package flycheck
+  :init
+  (global-flycheck-mode))
+#+end_src
+
 *** Company
 
 Text completion for Emacs.
 
 #+begin_src emacs-lisp
 (use-package company
-  :after (lsp-mode yasnippet)
+  :disabled t
+  :after '(yasnippet lsp-mode)
   :config
   (add-hook 'after-init-hook 'global-company-mode)
-  (setq completion-ignore-case t)
+  (setq completion-ignore-case t
+        company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
+                            company-echo-metadata-frontend
+                            company-preview-common-frontend))
+  (set-face-attribute 'company-preview-common nil
+                      :foreground
+                      (face-attribute 'font-lock-comment-face :foreground)
+                      :italic t)
   :custom-face
   (company-tooltip
    ((t (:family "Iosevka Sandvich")))))
@@ -1005,12 +1074,12 @@ Automatically indent on newline.
 (evil-define-key '(normal visual)
   'global
   (kbd "/")
-  'swiper)
+  'evil-search-forward)
 
 (evil-define-key '(normal visual)
   'global
   (kbd "?")
-  'swiper-backward)
+  'evil-search-backward)
 
 (evil-define-key 'insert
   'global
@@ -1047,6 +1116,11 @@ Automatically indent on newline.
   'global
   (kbd "RET")
   '$newline-and-indent)
+
+(evil-define-key '(normal insert visual)
+  'acm-mode
+  (kbd "RET")
+  'acm-complete)
 #+end_src
 
 Jump to any text with 2 chars, similar to ~vim-easymotion~ and ~vim-sneak~.
@@ -1061,11 +1135,11 @@ Upon exiting insert mode, trim all trailing whitespace if the buffer is in ~prog
 (add-hook 'evil-insert-state-exit-hook '$prog-delete-trailing-whitespace)
 #+end_src
 
-Show LSP documentation with =K= if ~lsp-ui-doc-mode~ is enabled.
+Show LSP documentation with =K= with ~lsp-bridge-popup-documentation~.
 
 #+begin_src emacs-lisp
 ;(evil-define-key 'normal 'global (kbd "K") '$lsp-ui-doc-glance-or-focus)
-(evil-define-key 'normal 'global (kbd "K") 'lsp-ui-doc-glance)
+(evil-define-key 'normal 'global (kbd "K") 'lsp-bridge-popup-documentation)
 (evil-define-key 'normal 'global (kbd "=") 'lsp-ui-doc-focus-frame)
 #+end_src
 
@@ -1073,6 +1147,13 @@ In evil mode, use =M-u= as the universal argument.
 
 #+begin_src emacs-lisp
 (evil-define-key '(normal visual) 'global (kbd "M-u") 'universal-argument)
+#+end_src
+
+** LSP
+
+#+begin_src emacs-lisp
+(evil-define-key 'normal 'global (kbd "gd") 'lsp-bridge-find-def)
+(evil-define-key 'normal 'global (kbd "gD") 'lsp-bridge-find-impl)
 #+end_src
 
 ** Leader =SPC=
@@ -1324,7 +1405,7 @@ In evil mode, use =M-u= as the universal argument.
  "d" '(lsp-find-definition :which-key "Find definition")
  "i" '(lsp-find-implementation :which-key "Find implementation")
  "c" '(lsp-execute-code-action :which-key "Code actions")
- "e" '(lsp-treemacs-errors-list :which-key "Errors list"))
+ "e" '(lsp-bridge-diagnostic-list :which-key "Errors list"))
 #+end_src
 
 * Orgmode
