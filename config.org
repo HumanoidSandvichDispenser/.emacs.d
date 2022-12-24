@@ -182,6 +182,18 @@ Configure ~evil-mode~ variables
       evil-emacs-state-cursor '(bar))
 #+end_src
 
+*** Evil Cursors
+
+Change the cursor to their appropriate style on terminals when using ~evil-mode~.
+
+#+begin_src emacs-lisp
+(use-package evil-terminal-cursor-changer
+  :after evil
+  :config
+  (unless (display-graphic-p)
+    (evil-terminal-cursor-changer-activate)))
+#+end_src
+
 *** Evil Collection
 
 Enables evil keybindings for modes that do not support them by default.
@@ -450,6 +462,7 @@ Use the modeline from Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package doom-modeline
+  :disabled t
   :init
   (doom-modeline-mode 1)
   :config
@@ -467,9 +480,10 @@ Use the modeline from Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package mood-line
-  :disabled t
   :config
-  (mood-line-mode))
+  (mood-line-mode)
+  :custom
+  (mood-line-glyph-alist . mood-line-glyphs-fira-code))
 #+end_src
 
 *** Dashboard
@@ -808,42 +822,6 @@ Implements language server for markup documents (LaTeX, markdown, Org, etc.)
 
 ** LSP / Autocomplete
 
-*** LSP Mode
-
-#+begin_src emacs-lisp
-(use-package lsp-mode
-  :disabled t
-  :config
-  (setq lsp-signature-function 'lsp-signature-posframe
-        lsp-keep-workspace-alive nil
-        lsp-disabled-clients '((typescript-mode . vue-semantic-server))
-        lsp-headerline-breadcrumb-enable nil))
-#+end_src
-
-This filters special characters which may otherwise cause the LSP client to log a specific error. See [[https://github.com/emacs-lsp/lsp-mode/issues/2681#issuecomment-1214902146][emacs-lsp/lsp-mode#2681]].
-
-#+begin_src emacs-lisp
-(defun lsp--json-parse-fix (orig &rest rest)
-  (while (re-search-forward "\\u0000" nil t)
-                (replace-match ""))
-              (apply orig rest))
-
-(advice-add 'json-parse-buffer :around #'lsp--json-parse-fix)
-#+end_src
-
-*** LSP UI
-
-#+begin_src emacs-lisp
-(use-package lsp-ui
-  :disabled t
-  :after lsp-mode
-  :config
-  (setq lsp-ui-doc-position 'at-point
-        lsp-ui-sideline-show-hover t
-        lsp-ui-sideline-show-code-actions t
-        lsp-ui-doc-use-webkit t))
-#+end_src
-
 *** YASnippet
 
 Yet Another Snippet template system for Emacs.
@@ -883,22 +861,19 @@ File templates using YASnippet.
 ;;   :files (:defaults "*"))
 ;;  :config
 ;;  (global-lsp-bridge-mode))
+;;
 (add-to-list 'load-path "~/.emacs.d/lsp-bridge")
-
+(require 'yasnippet)
 (require 'lsp-bridge)
 (global-lsp-bridge-mode)
-(setq lsp-bridge-enable-hover-diagnostic t)
+(setq lsp-bridge-enable-hover-diagnostic t
+      lsp-bridge-enable-log t)
 (add-hook 'lsp-bridge-ref-mode-hook 'evil-emacs-state)
-#+end_src
-
-*** Eglot
-
-#+begin_src emacs-lisp
-(use-package eglot
-  :disabled t
-  :config
-  (add-to-list 'eglot-server-programs
-               '(vue-mode)))
+;;(use-package lsp-bridge
+;;  :straight (:local-repo "~/.emacs.d/lsp-bridge" :files (:defaults "*"))
+;;  :after '(yasnippet)
+;;  :config
+;;  (global-lsp-bridge-mode))
 #+end_src
 
 *** Flycheck
@@ -907,29 +882,6 @@ File templates using YASnippet.
 (use-package flycheck
   :init
   (global-flycheck-mode))
-#+end_src
-
-*** Company
-
-Text completion for Emacs.
-
-#+begin_src emacs-lisp
-(use-package company
-  :disabled t
-  :after '(yasnippet lsp-mode)
-  :config
-  (add-hook 'after-init-hook 'global-company-mode)
-  (setq completion-ignore-case t
-        company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
-                            company-echo-metadata-frontend
-                            company-preview-common-frontend))
-  (set-face-attribute 'company-preview-common nil
-                      :foreground
-                      (face-attribute 'font-lock-comment-face :foreground)
-                      :italic t)
-  :custom-face
-  (company-tooltip
-   ((t (:family "Iosevka Sandvich")))))
 #+end_src
 
 ** Project Management
