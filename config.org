@@ -64,7 +64,14 @@ Superword mode sometimes breaks ~evil-mode~ and does not navigate through the en
 This is an appearance configuration, but it must be loaded before any package.
 
 #+begin_src emacs-lisp
+(defvar after-load-theme-hook nil
+  "Hook run after loading a theme with `load-theme'.")
 (defadvice load-theme (after set-theme-overrides activate)
+  (run-hooks 'after-load-theme-hook))
+#+end_src
+
+#+begin_src emacs-lisp
+(defun $theme-overrides ()
   (set-face-attribute 'org-block-begin-line nil :background "transparent")
   (set-face-attribute 'org-block-end-line nil :background "transparent")
   (set-face-attribute
@@ -80,6 +87,62 @@ This is an appearance configuration, but it must be loaded before any package.
                :foreground) 0)
    :box (list :line-width 4
               :color (face-attribute 'default :background))))
+
+(add-hook 'after-load-theme-hook '$theme-overrides)
+#+end_src
+
+These are face overrides for ~doom-modeline~.
+
+#+begin_src emacs-lisp
+(defun $modeline-overrides ()
+  (set-face-attribute 'doom-modeline-buffer-file nil
+                      :foreground (doom-color 'fg)
+                      :weight 'normal)
+  (set-face-attribute 'doom-modeline-buffer-modified nil
+                      :weight 'normal)
+  (set-face-attribute 'doom-modeline-project-root-dir nil
+                      :foreground (doom-color 'comments))
+  (set-face-attribute 'doom-modeline-project-dir nil
+                      :foreground (doom-color 'comments)
+                      :weight 'normal)
+  (set-face-attribute 'doom-modeline-buffer-path nil
+                      :foreground (doom-color 'comments)
+                      :inherit nil)
+  (set-face-attribute 'doom-modeline-buffer-major-mode nil
+                      :foreground (doom-color 'comments)
+                      :inherit nil
+                      :weight 'normal)
+  (set-face-attribute 'doom-modeline-info nil
+                      :foreground (doom-color 'comments))
+  (set-face-attribute 'mode-line nil
+                      :foreground (doom-color 'comments)
+                      :background (doom-color 'bg))
+  (set-face-attribute 'mode-line-inactive nil
+                      :foreground (doom-color 'comments)
+                      :background (doom-color 'bg))
+  (set-face-attribute 'doom-modeline-bar nil
+                      :background (doom-color 'bg))
+  (set-face-attribute 'doom-modeline-bar-inactive nil
+                      :background (doom-color 'bg))
+  (set-face-attribute 'doom-modeline-evil-emacs-state nil
+                      :foreground (doom-color 'bg)
+                      :background (doom-color 'magenta))
+  (set-face-attribute 'doom-modeline-evil-normal-state nil
+                      :foreground (doom-color 'bg)
+                      :background (doom-color 'fg))
+  (set-face-attribute 'doom-modeline-evil-operator-state nil
+                      :inherit 'doom-modeline-evil-normal-state)
+  (set-face-attribute 'doom-modeline-evil-visual-state nil
+                      :foreground (doom-color 'bg)
+                      :background (doom-color 'blue))
+  (set-face-attribute 'doom-modeline-evil-insert-state nil
+                      :foreground (doom-color 'bg)
+                      :background (doom-color 'green))
+  (set-face-attribute 'doom-modeline-evil-replace-state nil
+                      :foreground (doom-color 'bg)
+                      :background (doom-color 'yellow)))
+
+(add-hook 'after-load-theme-hook '$modeline-overrides)
 #+end_src
 
 ** Backups
@@ -423,6 +486,16 @@ Generates HTML snippets from CSS selectors.
 (use-package rg)
 #+end_src
 
+*** Anzu
+
+Display the current search and total amount of search results.
+
+#+begin_src emacs-lisp
+(use-package anzu
+  :config
+  (global-anzu-mode))
+#+end_src
+
 ** Themes
 
 *** Doom Themes
@@ -431,6 +504,7 @@ A collection of themes used in Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package doom-themes
+  :after doom-modeline
   :config
   (load-theme 'doom-one t)
   (doom-themes-org-config))
@@ -462,16 +536,17 @@ Use the modeline from Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package doom-modeline
-  :disabled t
   :init
   (doom-modeline-mode 1)
   :config
-  (setq doom-modeline-height 32
-        doom-modeline-workspace-name nil)
+  (setq doom-modeline-height 28
+        doom-modeline-major-mode-color-icon nil
+        doom-modeline-buffer-file-name-style 'relative-to-project
+        doom-modeline-modal-icon nil)
   (doom-modeline-def-modeline 'main
-    '(bar matches buffer-info remote-host buffer-position parrot selection-info)
-    '(misc-info minor-modes checker input-method
-                buffer-encoding major-mode process vcs "  ")))
+    '(modals buffer-info major-mode remote-host parrot selection-info)
+    '(matches misc-info vcs minor-modes checker input-method
+                process buffer-position bar)))
 
 (column-number-mode)
 #+end_src
@@ -480,10 +555,17 @@ Use the modeline from Doom Emacs.
 
 #+begin_src emacs-lisp
 (use-package mood-line
+  :disabled t
   :config
-  (mood-line-mode)
-  :custom
-  (mood-line-glyph-alist . mood-line-glyphs-fira-code))
+  (set-face-attribute 'mood-line-buffer-name
+                      nil
+                      :weight 'normal)
+  (set-face-attribute 'mood-line-major-mode
+                      nil
+                      :weight 'bold)
+  (setq mood-line-glyph-alist mood-line-glyphs-fira-code
+        mood-line-show-encoding-information t)
+  (mood-line-mode))
 #+end_src
 
 *** Dashboard
@@ -1017,16 +1099,6 @@ Automatically indent on newline.
 (evil-define-key 'insert 'global (kbd "C-n") 'next-line)
 (evil-define-key 'insert 'global (kbd "C-p") 'previous-line)
 (evil-define-key 'insert 'global (kbd "C-k") 'kill-line)
-
-(evil-define-key '(normal visual)
-  'global
-  (kbd "/")
-  'evil-search-forward)
-
-(evil-define-key '(normal visual)
-  'global
-  (kbd "?")
-  'evil-search-backward)
 
 (evil-define-key 'insert
   'global
