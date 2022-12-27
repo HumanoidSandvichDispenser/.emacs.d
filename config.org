@@ -116,14 +116,14 @@ These are face overrides for ~doom-modeline~.
                       :foreground (doom-color 'comments))
   (set-face-attribute 'mode-line nil
                       :foreground (doom-color 'comments)
-                      :background (doom-color 'bg))
+                      :background (doom-color 'bg-alt))
   (set-face-attribute 'mode-line-inactive nil
                       :foreground (doom-color 'comments)
-                      :background (doom-color 'bg))
+                      :background (doom-color 'bg-alt))
   (set-face-attribute 'doom-modeline-bar nil
-                      :background (doom-color 'bg))
+                      :background (doom-color 'bg-alt))
   (set-face-attribute 'doom-modeline-bar-inactive nil
-                      :background (doom-color 'bg))
+                      :background (doom-color 'bg-alt))
   (set-face-attribute 'doom-modeline-evil-emacs-state nil
                       :foreground (doom-color 'bg)
                       :background (doom-color 'magenta))
@@ -568,21 +568,6 @@ Use the modeline from Doom Emacs.
   (mood-line-mode))
 #+end_src
 
-*** Dashboard
-
-#+begin_src emacs-lisp
-(use-package dashboard
-  :config
-  (dashboard-setup-startup-hook)
-  (setq dashboard-startup-banner
-        (expand-file-name
-         "assets/apuEZY-transparent-small.png"
-         user-emacs-directory)
-        dashboard-center-content t
-        dashboard-items '((projects . 5)
-                          (agenda . 5))))
-#+end_src
-
 *** Rainbow Delimiers
 
 Highlight delimiters based on their level/depth.
@@ -665,10 +650,8 @@ Allows for buffers to have both ~variable-pitch~ faces and ~fixed-pitch~ faces.
   :hook
   (org-mode . mixed-pitch-mode)
   :config
-  (set-face-attribute 'variable-pitch
-                      nil
-                      :font
-                      "Overpass"))
+  (set-face-attribute 'variable-pitch nil
+                      :font "Overpass"))
 #+end_src
 
 *** Ligatures
@@ -705,6 +688,7 @@ Distinguishes between code buffers (editing text, usually associated with or vis
 
 #+begin_src emacs-lisp
 (use-package solaire-mode
+  :disabled t
   :config
   (solaire-global-mode +1))
 #+end_src
@@ -934,28 +918,13 @@ File templates using YASnippet.
 *** lsp-bridge
 
 #+begin_src emacs-lisp
-;;(use-package lsp-bridge
-;;  :after '(posframe acm-terminal yasnippet)
-;;  :straight
-;;  (:type git
-;;   :host github
-;;   :repo "manateelazycat/lsp-bridge"
-;;   :files (:defaults "*"))
-;;  :config
-;;  (global-lsp-bridge-mode))
-;;
 (add-to-list 'load-path "~/.emacs.d/lsp-bridge")
 (require 'yasnippet)
 (require 'lsp-bridge)
 (global-lsp-bridge-mode)
 (setq lsp-bridge-enable-hover-diagnostic t
-      lsp-bridge-enable-log t)
+      lsp-bridge-enable-profile nil)
 (add-hook 'lsp-bridge-ref-mode-hook 'evil-emacs-state)
-;;(use-package lsp-bridge
-;;  :straight (:local-repo "~/.emacs.d/lsp-bridge" :files (:defaults "*"))
-;;  :after '(yasnippet)
-;;  :config
-;;  (global-lsp-bridge-mode))
 #+end_src
 
 *** Flycheck
@@ -1089,7 +1058,7 @@ Automatically indent on newline.
 #+begin_src emacs-lisp
 (evil-set-leader '(normal visual) (kbd "SPC"))
 
-(evil-define-key 'normal 'global (kbd ";") 'evil-ex)
+jkjk(evil-define-key 'normal 'global (kbd ";") 'evil-ex)
 (evil-define-key 'normal 'global (kbd "C-s") 'save-buffer)
 (evil-define-key '(normal insert) 'global (kbd "C-d") 'evil-scroll-down)
 (evil-define-key '(normal insert) 'global (kbd "C-u") 'evil-scroll-up)
@@ -1105,11 +1074,16 @@ Automatically indent on newline.
   (kbd "C-<backspace>")
   'evil-delete-backward-word)
 
+(evil-define-key 'insert
+  'global
+  (kbd "C-h")
+  'evil-delete-backward-word)
+
 (evil-define-key '(insert emacs)
   'global (kbd "C-S-v")
   'clipboard-yank)
 
-(evil-define-key 'visual
+(evil-define-key '(insert visual)
   'global
   (kbd "C-S-c")
   'evil-yank)
@@ -1518,7 +1492,7 @@ Specify the size of the image using ~#+attr_org~
 
 ** Org-specific Keybinds
 
-Allows pressing ~RET~ to toggle TODO/DONE on an org entry.
+Allows pressing =RET= to toggle TODO/DONE on an org entry.
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -1527,7 +1501,7 @@ Allows pressing ~RET~ to toggle TODO/DONE on an org entry.
  "RET" '$org-ret)
 #+end_src
 
-Allows pressing ~RET~ to click on an agenda entry.
+Allows pressing =RET= to click on an agenda entry.
 
 #+begin_src emacs-lisp
 (evil-define-key 'normal org-agenda-mode-map (kbd "RET") 'org-agenda-goto)
@@ -1537,7 +1511,7 @@ Allows pressing ~RET~ to click on an agenda entry.
 (add-hook 'org-mode-hook 'org-indent-mode)
 #+end_src
 
-Make ~M-RET~ insert heading and enter insert mode.
+Make =M-RET= insert heading and enter insert mode.
 
 #+begin_src emacs-lisp
 (evil-define-key
@@ -1552,7 +1526,7 @@ Make ~M-RET~ insert heading and enter insert mode.
   'org-append-todo-heading)
 #+end_src
 
-Make ~M-h~, ~M-j~, etc. replicate its arrow versions.
+Make =M-h=, =M-j=, etc. replicate its arrow versions.
 
 #+begin_src emacs-lisp
 (evil-define-key '(normal insert) org-mode-map (kbd "M-h") 'org-metaleft)
@@ -1561,7 +1535,7 @@ Make ~M-h~, ~M-j~, etc. replicate its arrow versions.
 (evil-define-key '(normal insert) org-mode-map (kbd "M-k") 'org-metaup)
 #+end_src
 
-Search the outline with ~C-/~.
+Search the outline with =C-/=.
 
 #+begin_src emacs-lisp
 (general-define-key
@@ -1605,4 +1579,13 @@ Enable additional keywords/states for org-mode.
       '((sequence "TODO" "STARTED" "DONE"))
       org-todo-keyword-faces
       '(("STARTED" ,(face-foreground 'all-the-icons-yellow))))
+#+end_src
+
+* Open Configuration File
+
+Open the configuration file by default when launching emacs.
+
+#+begin_src emacs-lisp
+(find-file (expand-file-name "config.org" user-emacs-directory))
+(tab-bar-rename-tab ".emacs.d")
 #+end_src
