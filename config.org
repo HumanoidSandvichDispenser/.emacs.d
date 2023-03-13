@@ -607,20 +607,6 @@ Customize org-mode stars.
   :hook
   (org-mode . (lambda ()
                 (org-superstar-mode 1)
-                (set-face-attribute
-                 'org-level-1
-                 nil
-                 :height 180
-                 :weight 'regular)
-                (set-face-attribute
-                 'org-level-2
-                 nil
-                 :height 150
-                 :weight 'regular)
-                (set-face-attribute
-                 'org-document-title
-                 nil
-                 :height 180)
                 (setq org-superstar-headline-bullets-list (list "☰" "❖" "")
                       org-superstar-special-todo-item t
                       org-superstar-cycle-headline-bullets nil))))
@@ -918,13 +904,13 @@ File templates using YASnippet.
 *** lsp-bridge
 
 #+begin_src emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/lsp-bridge")
-(require 'yasnippet)
-(require 'lsp-bridge)
-(global-lsp-bridge-mode)
-(setq lsp-bridge-enable-hover-diagnostic t
-      lsp-bridge-enable-profile nil)
-(add-hook 'lsp-bridge-ref-mode-hook 'evil-emacs-state)
+;(add-to-list 'load-path "~/.emacs.d/lsp-bridge")
+;(require 'yasnippet)
+;(require 'lsp-bridge)
+;(global-lsp-bridge-mode)
+;(setq lsp-bridge-enable-hover-diagnostic t
+;      lsp-bridge-enable-profile nil)
+;(add-hook 'lsp-bridge-ref-mode-hook 'evil-emacs-state)
 #+end_src
 
 *** Flycheck
@@ -1058,7 +1044,7 @@ Automatically indent on newline.
 #+begin_src emacs-lisp
 (evil-set-leader '(normal visual) (kbd "SPC"))
 
-jkjk(evil-define-key 'normal 'global (kbd ";") 'evil-ex)
+(evil-define-key 'normal 'global (kbd ";") 'evil-ex)
 (evil-define-key 'normal 'global (kbd "C-s") 'save-buffer)
 (evil-define-key '(normal insert) 'global (kbd "C-d") 'evil-scroll-down)
 (evil-define-key '(normal insert) 'global (kbd "C-u") 'evil-scroll-up)
@@ -1384,7 +1370,7 @@ In evil mode, use =M-u= as the universal argument.
  :prefix "<leader> o"
  :keymaps 'normal
  "" '(nil :which-key "open")
- "a" '(org-agenda))
+ "a" 'org-agenda)
 #+end_src
 
 ** Code =SPC c=
@@ -1420,9 +1406,9 @@ This function toggles entries between TODO and DONE.
 Sets the directory where my org files are usually located.
 
 #+begin_src emacs-lisp
-(setq org-directory "~/Dropbox/Documents/org"
+(setq org-directory "~/sync"
       org-default-notes-file (concat org-directory "/agenda.org")
-      org-agenda-files '("~/Dropbox/Documents/org"))
+      org-agenda-files '("~/sync"))
 #+end_src
 
 Log when a TODO item is marked as done.
