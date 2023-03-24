@@ -741,19 +741,7 @@ Render faster LaTeX previews in org mode.
         '(("TODO" . ,(face-foreground 'all-the-icons-yellow)))))
 #+end_src
 
-** Writing Modes
-
-*** Writeroom Mode
-
-Distraction-free editing for emacs.
-
-#+begin_src emacs-lisp
-(use-package writeroom-mode
-  :config
-  (setq writeroom-mode-line t)
-  (setq writeroom-fullscreen-effect 'maximized)
-  (setq writeroom-maximize-window nil))
-#+end_src
+** Org Mode
 
 *** Olivetti
 
@@ -766,6 +754,35 @@ Olivetti is an alternative that is less targeted for distraction-free editing bu
   :hook
   (org-mode . olivetti-mode))
 #+end_src
+
+*** emacsql
+
+This recipe allows ~org-roam~ to compile without fail.
+
+#+begin_src emacs-lisp
+(use-package emacsql
+  :straight (:files (:defaults "*")))
+#+end_src
+
+*** Org Roam
+
+#+begin_src emacs-lisp
+(use-package org-roam
+  :straight (:host github :repo "org-roam/org-roam"
+             :files (:defaults "extensions/*"))
+  :config
+  (setq org-roam-directory "~/sync/org-roam"))
+#+end_src
+
+*** Org Roam UI
+
+#+begin_src emacs-lisp
+(use-package org-roam-ui)
+#+end_src
+
+*** ox-hugo
+
+Org to Hugo-compatible Markdown exporter
 
 ** Documentation
 
@@ -799,6 +816,12 @@ Support for Rust Object Notation
 
 #+begin_src emacs-lisp
 (use-package ron-mode)
+#+end_src
+
+*** JSON
+
+#+begin_src emacs-lisp
+(use-package json-mode)
 #+end_src
 
 *** Rust Org-Babel
@@ -904,13 +927,13 @@ File templates using YASnippet.
 *** lsp-bridge
 
 #+begin_src emacs-lisp
-;(add-to-list 'load-path "~/.emacs.d/lsp-bridge")
-;(require 'yasnippet)
-;(require 'lsp-bridge)
-;(global-lsp-bridge-mode)
-;(setq lsp-bridge-enable-hover-diagnostic t
-;      lsp-bridge-enable-profile nil)
-;(add-hook 'lsp-bridge-ref-mode-hook 'evil-emacs-state)
+(add-to-list 'load-path "~/.emacs.d/lsp-bridge")
+(require 'yasnippet)
+(require 'lsp-bridge)
+(global-lsp-bridge-mode)
+(setq lsp-bridge-enable-hover-diagnostic t
+      lsp-bridge-enable-profile nil)
+(add-hook 'lsp-bridge-ref-mode-hook 'evil-emacs-state)
 #+end_src
 
 *** Flycheck
@@ -1530,6 +1553,28 @@ Search the outline with =C-/=.
  "C-/" 'counsel-outline)
 #+end_src
 
+Use =C-c l= to copy link to the current location.
+
+#+begin_src emacs-lisp
+(general-define-key
+ :states '(normal insert)
+ :keymaps 'org-mode-map
+ "C-c l" 'org-store-link)
+#+end_src
+
+*** Org Roam
+
+#+begin_src emacs-lisp
+(general-define-key
+ :prefix "C-c n"
+ :states '(normal insert)
+ :keymaps 'org-mode-map
+ "f" 'org-roam-node-find
+ "i" 'org-roam-node-insert
+ "t a" 'org-roam-tag-add
+ "t d" 'org-roam-tag-remove)
+#+end_src
+
 ** Org Babel
 
 Org Babel allows users to write and execute source code blocks in Org documents. This allows for literate programming and notebooks.
@@ -1574,4 +1619,12 @@ Open the configuration file by default when launching emacs.
 #+begin_src emacs-lisp
 (find-file (expand-file-name "config.org" user-emacs-directory))
 (tab-bar-rename-tab ".emacs.d")
+#+end_src
+
+Then start a new tab with org-roam dailies.
+
+#+begin_src emacs-lisp
+(tab-bar-new-tab)
+(tab-bar-rename-tab "roam")
+(org-roam-dailies-goto-today)
 #+end_src

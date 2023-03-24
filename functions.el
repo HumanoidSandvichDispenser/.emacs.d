@@ -201,5 +201,16 @@ two curly braces, otherwise do a regular newline and indent"
   ;; close the workspace
   (tabspaces-close-workspace))
 
+;; https://www.reddit.com/r/emacs/comments/s8mwiw/orgroam_a_way_to_use_subdirectories/htlliun/
+(defun $org-roam-filter-by-tag (tag-name)
+  (lambda (node)
+    (member tag-name (org-roam-node-tags node))))
+
+(defun $org-roam-find-node-by-tag (tag-name)
+  (mapcar #'org-roam-node-file
+          (seq-filter
+           ($org-roam-filter-by-tag)
+           (org-roam-node-list))))
+
 (provide 'functions)
 ;;; functions.el ends here
