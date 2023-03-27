@@ -771,7 +771,28 @@ This recipe allows ~org-roam~ to compile without fail.
   :straight (:host github :repo "org-roam/org-roam"
              :files (:defaults "extensions/*"))
   :config
-  (setq org-roam-directory "~/sync/org-roam"))
+  (setq org-roam-directory "~/sync/org-roam")
+  (setq org-roam-capture-templates
+      '(("m" "main" plain "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n")
+         :immediate-finish t
+         :unnarrowed t)
+        ("r" "reference" plain "%?"
+         :if-new
+         (file+head "reference/${slug}.org" "#+title: ${title}\n")
+         :immediate-finish t
+         :unnarrowed t)
+        ("s" "study" plain "%?"
+         :if-new
+         (file+heada "study/${slug}.org" "#+title: ${title}\n")
+         :immediate-finish t
+         :unnarrowed t)
+        ("f" "floating" plain "%?"
+         :if-new
+         (file+head "floating/${slug}.org" "#+title: ${title}\n")
+         :immediate-finish t
+         :unnarrowed t))))
 #+end_src
 
 *** Org Roam UI
@@ -1011,6 +1032,14 @@ Set fringes
 
 #+begin_src emacs-lisp
 ;(set-fringe-style 'halfwidth)
+#+end_src
+
+** Fonts
+
+Set the default face font so fonts are consistent with PGTK builds
+
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :font "Iosevka Sandvich 12")
 #+end_src
 
 ** Visual Line Mode
@@ -1568,8 +1597,8 @@ Use =C-c l= to copy link to the current location.
 (general-define-key
  :prefix "C-c n"
  :states '(normal insert)
- :keymaps 'org-mode-map
  "f" 'org-roam-node-find
+ "n" 'org-roam-capture
  "i" 'org-roam-node-insert
  "t a" 'org-roam-tag-add
  "t d" 'org-roam-tag-remove)
